@@ -1,266 +1,154 @@
-﻿using System.Collections;
-using UnityEngine;
-using UnityEngine.AI;
+﻿using UnityEngine;
 using UnityEngine.UI;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 
-public class PlayerScript : MonoBehaviour
-{
-	private void Start()
-	{
-		if (PlayerPrefs.GetInt("AnalogMove") == 1)
-		{
+public class PlayerScript : MonoBehaviour{
+	[Header("Scripts")]
+	[SerializeField] private GameControllerScript gameController;
+	
+	[Header("Main")]
+	[SerializeField] private Quaternion playerRotation;
+	[SerializeField] private Vector3 moveDirection;
+	[SerializeField] private CharacterController characterController;
+	[SerializeField] private Vector3 frozenPosition;
+	[SerializeField] private float playerHeight;
+	[SerializeField] private float fliparoo;
+	[SerializeField] private float flipaturn;
+	[SerializeField] private bool sensitivityActive;
+	[SerializeField] private float sensitivity;	
+	[SerializeField] private float mouseSensitivity;
+	
+	[Header("Walk/Run")]
+	[SerializeField] private float playerSpeed;	
+	[SerializeField] private float walkSpeed;
+	[SerializeField] private float runSpeed;
+	[SerializeField] private float slowSpeed;
+	[SerializeField] private bool isMoving;
+	
+	[Header("Stamina")]
+	[SerializeField] public float stamina;	
+	[SerializeField] public float maxStamina;
+	[SerializeField] private float staminaRate;
+	[SerializeField] private bool isRunning;
+	[SerializeField] private Slider staminaBar;
+	
+	[Header("Health")]
+	[SerializeField] public float healthValue;	
+	[SerializeField] public float maxHealthValue;
+	[SerializeField] private float healthRate;
+	[SerializeField] private Slider healthBar;
+	
+	private void Start(){
+		if (PlayerPrefs.GetInt("AnalogMove") == 1){
 			sensitivityActive = true;
 		}
-		height = transform.position.y;
+		
+		playerHeight = transform.position.y;
 		stamina = maxStamina;
 		playerRotation = transform.rotation;
 		mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity");
-		principalBugFixer = 1;
-		flipaturn = 1f;
 	}
-	private void Update()
-	{
-		transform.position = new Vector3(transform.position.x, height, transform.position.z);
-		MouseMove();
-		PlayerMove();
-		StaminaCheck();
-		GuiltCheck();
-		if (cc.velocity.magnitude > 0f)
-		{
-			gc.LockMouse();
-		}
-		if (jumpRope & (transform.position - frozenPosition).magnitude >= 1f) // If the player moves, deactivate the jumprope minigame
-		{
-			DeactivateJumpRope();
-		}
-		if (sweepingFailsave > 0f)
-		{
-			sweepingFailsave -= Time.deltaTime;
-		}
-		else
-		{
-			sweeping = false;
-			hugging = false;
+	
+	private void Update(){
+		transform.position = new Vector3(transform.position.x, playerHeight, transform.position.z);
+		
+		isMoving = characterController.velocity.sqrMagnitude > 0.01f;
+		isRunning = Singleton<InputManager>.Instance.GetActionKey(InputAction.Run);
+		
+		mouseMove();
+		playerMove();
+		staminaCheck();
+		
+		if (characterController.velocity.magnitude > 0f){
+			gameController.lockMouse();
 		}
 	}
-	private void MouseMove()
-	{
-		playerRotation.eulerAngles = new Vector3(playerRotation.eulerAngles.x, playerRotation.eulerAngles.y, fliparoo);
-		playerRotation.eulerAngles = playerRotation.eulerAngles + Vector3.up * Input.GetAxis("Mouse X") * mouseSensitivity * Time.timeScale * flipaturn;
+	
+	private void mouseMove(){
+		playerRotation.eulerAngles = new Vector3(playerRotation.eulerAngles.x, playerRotation.eulerAngles.y, 0f);
+		playerRotation.eulerAngles = playerRotation.eulerAngles + Vector3.up * Input.GetAxis("Mouse X") * mouseSensitivity * Time.timeScale;
 		transform.rotation = playerRotation;
 	}
-	private void PlayerMove()
-	{
+	
+	private void playerMove(){
 		Vector3 movement = Vector3.zero;
 		Vector3 lateralMovement = Vector3.zero;
+		
 		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveForward)) movement = transform.forward;
 		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveBackward)) movement = -transform.forward;
 		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveLeft)) lateralMovement = -transform.right;
 		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveRight)) lateralMovement = transform.right;
-		if (stamina > 0f)
-		{
-			if (Singleton<InputManager>.Instance.GetActionKey(InputAction.Run))
-			{
+		
+		if (stamina > 0f){
+			if (Singleton<InputManager>.Instance.GetActionKey(InputAction.Run)){
 				playerSpeed = runSpeed;
 				sensitivity = 1f;
-				if (cc.velocity.magnitude > 0.1f & !hugging & !sweeping)
-				{
-					ResetGuilt("running", 0.1f);
-				}
 			}
-			else
-			{
+			else{
 				playerSpeed = walkSpeed;
-				if (sensitivityActive)
-				{
+				
+				if (sensitivityActive){
 					sensitivity = Mathf.Clamp((movement + lateralMovement).magnitude, 0f, 1f);
 				}
-				else
-				{
+				else{
 					sensitivity = 1f;
 				}
 			}
 		}
-		else
-		{
+		else{
 			playerSpeed = walkSpeed;
-			if (sensitivityActive)
-			{
+			
+			if (sensitivityActive){
 				sensitivity = Mathf.Clamp((lateralMovement + movement).magnitude, 0f, 1f);
 			}
-			else
-			{
+			else{
 				sensitivity = 1f;
 			}
 		}
+		
 		playerSpeed *= Time.deltaTime;
 		moveDirection = (movement + lateralMovement).normalized * playerSpeed * sensitivity;
-		if (!(!jumpRope & !sweeping & !hugging))
-		{
-			if (sweeping && !bootsActive)
-			{
-				moveDirection = gottaSweep.velocity * Time.deltaTime + moveDirection * 0.3f;
-			}
-			else if (hugging && !bootsActive)
-			{
-				moveDirection = (firstPrize.velocity * 1.2f * Time.deltaTime + (new Vector3(firstPrizeTransform.position.x, height, firstPrizeTransform.position.z) + new Vector3((float)Mathf.RoundToInt(firstPrizeTransform.forward.x), 0f, (float)Mathf.RoundToInt(firstPrizeTransform.forward.z)) * 3f - transform.position)) * (float)principalBugFixer;
-			}
-			else if (jumpRope)
-			{
-				moveDirection = new Vector3(0f, 0f, 0f);
-			}
-		}
-		cc.Move(moveDirection);
+		
+		characterController.Move(moveDirection);
 	}
-	private void StaminaCheck()
-	{
-		if (cc.velocity.magnitude > 0.1f)
-		{
-			if (Singleton<InputManager>.Instance.GetActionKey(InputAction.Run) & stamina > 0f)
-			{
-				stamina -= staminaRate * Time.deltaTime;
-			}
-			if (stamina < 0f & stamina > -5f)
-			{
-				stamina = -5f;
-			}
+	
+	private void staminaCheck(){
+		if (isMoving && isRunning && stamina > 0f){
+			stamina -= staminaRate * Time.deltaTime;
 		}
-		else if (stamina < maxStamina)
-		{
+		else if (stamina < maxStamina){
 			stamina += staminaRate * Time.deltaTime;
 		}
-		staminaBar.value = stamina / maxStamina * 100f;
+
+		stamina = Mathf.Clamp(stamina, 0f, maxStamina);
+
+		float target = (stamina / maxStamina) * 100f;
+		staminaBar.value = Mathf.MoveTowards(staminaBar.value, target, Time.deltaTime * 600f);
 	}
-	private void OnTriggerEnter(Collider other)
-	{
-		if (other.transform.name == "Baldi" & !gc.debugMode)
-		{
-			gameOver = true;
-			RenderSettings.skybox = blackSky; //Sets the skybox black
-			StartCoroutine(KeepTheHudOff()); //Hides the Hud
+	
+	private void healthCheck(){
+		float regenThreshold = maxHealthValue * 0.4f;
+		
+		if (!isMoving && !isRunning && healthValue < regenThreshold){
+			healthValue += healthRate * Time.deltaTime / 2;
 		}
-		else if (other.transform.name == "Playtime" & !jumpRope & playtime.playCool <= 0f)
-		{
-			ActivateJumpRope();
-		}
+		
+		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
+		
+		float target = (healthValue / maxHealthValue) * 100f;
+		healthBar.value = Mathf.MoveTowards(healthBar.value, target, Time.deltaTime * 600f);
 	}
-	public IEnumerator KeepTheHudOff()
-	{
-		while (gameOver)
-		{
-			hud.enabled = false;
-			jumpRopeScreen.SetActive(false);
-			yield return new WaitForEndOfFrame();
-		}
-		yield break;
+	
+	public void healthAction(float value){
+		healthValue += value;
+		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
 	}
-	private void OnTriggerStay(Collider other)
-	{
-		if (other.transform.name == "Gotta Sweep")
-		{
-			sweeping = true;
-			sweepingFailsave = 1f;
-		}
-		else if (other.transform.name == "1st Prize" & firstPrize.velocity.magnitude > 5f)
-		{
-			hugging = true;
-			sweepingFailsave = 1f;
+	
+	private void OnTriggerEnter(Collider other){
+		if (other.transform.name == "Baldi" & !gameController.isDebugMode){
+			gameController.isGameOver = true;
 		}
 	}
-	private void OnTriggerExit(Collider other)
-	{
-		if (other.transform.name == "Office Trigger")
-		{
-			ResetGuilt("escape", door.lockTime);
-		}
-		else if (other.transform.name == "Gotta Sweep")
-		{
-			sweeping = false;
-		}
-		else if (other.transform.name == "1st Prize")
-		{
-			hugging = false;
-		}
-	}
-	public void ResetGuilt(string type, float amount)
-	{
-		if (amount >= guilt)
-		{
-			guilt = amount;
-			guiltType = type;
-		}
-	}
-	private void GuiltCheck()
-	{
-		if (guilt > 0f)
-		{
-			guilt -= Time.deltaTime;
-		}
-	}
-	public void ActivateJumpRope()
-	{
-		jumpRopeScreen.SetActive(true);
-		jumpRope = true;
-		frozenPosition = transform.position;
-	}
-	public void DeactivateJumpRope()
-	{
-		jumpRopeScreen.SetActive(false);
-		jumpRope = false;
-	}
-	public void ActivateBoots()
-	{
-		bootsActive = true;
-		StartCoroutine(BootTimer());
-	}
-	private IEnumerator BootTimer()
-	{
-		float time = 15f;
-		while (time > 0f)
-		{
-			time -= Time.deltaTime;
-			yield return null;
-		}
-		bootsActive = false;
-		yield break;
-	}
-	public GameControllerScript gc;
-	public BaldiScript baldi;
-	public DoorScript door;
-	public PlaytimeScript playtime;
-	public bool gameOver;
-	public bool jumpRope;
-	public bool sweeping;
-	public bool hugging;
-	public bool bootsActive;
-	public int principalBugFixer;
-	public float sweepingFailsave;
-	public float fliparoo;
-	public float flipaturn;
-	private Quaternion playerRotation;
-	public Vector3 frozenPosition;
-	private bool sensitivityActive;
-	private float sensitivity;
-	public float mouseSensitivity;
-	public float walkSpeed;
-	public float runSpeed;
-	public float slowSpeed;
-	public float maxStamina;
-	public float staminaRate;
-	public float guilt;
-	public float initGuilt;
-	private Vector3 moveDirection;
-	private float playerSpeed;
-	public float stamina;
-	public CharacterController cc;
-	public NavMeshAgent gottaSweep;
-	public NavMeshAgent firstPrize;
-	public Transform firstPrizeTransform;
-	public Slider staminaBar;
-	public float db;
-	public string guiltType;
-	public GameObject jumpRopeScreen;
-	public float height;
-	public Material blackSky;
-	public Canvas hud;
 }

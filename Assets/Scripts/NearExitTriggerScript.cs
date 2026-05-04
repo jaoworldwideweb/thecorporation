@@ -1,16 +1,18 @@
 ﻿using UnityEngine;
+using System;
 
-public class NearExitTriggerScript : MonoBehaviour
-{
-	private void OnTriggerEnter(Collider other)
-	{
-		if (gc.exitsReached < 3 & gc.finaleMode & other.tag == "Player")
-		{
-			gc.ExitReached();
-			es.Lower();
-			if (gc.baldiScrpt.isActiveAndEnabled) gc.baldiScrpt.Hear(transform.position, 8f);
+public class NearExitTriggerScript : MonoBehaviour{
+	private void OnTriggerEnter(Collider other){
+		if (gameController.exitsReached < 3 && gameController.isGameFinale && other.tag == "Player"){
+			gameController.exitReached();
+			// entranceScript.wallAction(EntranceScript.wallState.lowerWall);
+			
+			if (gameController.baldiScript.isActiveAndEnabled){
+				gameController.baldiScript.Hear(transform.position, 8f);
+			}
 		}
 	}
-	public GameControllerScript gc;
-	public EntranceScript es;
+	
+	[SerializeField] private GameControllerScript gameController;
+	// [SerializeField] private EntranceScript entranceScript;
 }

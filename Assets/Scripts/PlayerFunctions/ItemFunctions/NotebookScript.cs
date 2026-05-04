@@ -1,52 +1,26 @@
 ﻿using UnityEngine;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 
-public class NotebookScript : MonoBehaviour
-{
-	private void Start()
-	{
-		up = true;
-	}
-	private void Update()
-	{
-		if (gc.mode == "endless")
-		{
-			if (respawnTime > 0f)
-			{
-				if ((transform.position - player.position).magnitude > 60f)
-				{
-					respawnTime -= Time.deltaTime;
-				}
-			}
-			else if (!up)
-			{
-				transform.position = new Vector3(transform.position.x, 4f, transform.position.z);
-				up = true;
-				audioDevice.Play();
-			}
-		}
-		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) && Time.timeScale != 0f)
-		{
+public class NotebookScript : MonoBehaviour{
+#region Inspector
+	[Header("Main")]
+	[SerializeField] private GameControllerScript gameController;
+	[SerializeField] private Transform playerTransform;
+#endregion
+
+#region MainFunctions
+	private void Update(){
+		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) && Time.timeScale != 0f){
 			Ray ray = Camera.main.ScreenPointToRay(new Vector3((float)(Screen.width / 2), (float)(Screen.height / 2), 0f));
 			RaycastHit raycastHit;
-			if (Physics.Raycast(ray, out raycastHit) && (raycastHit.transform.tag == "Notebook" & Vector3.Distance(player.position, transform.position) < openingDistance))
-			{
+			
+			if (Physics.Raycast(ray, out raycastHit) && (raycastHit.transform.tag == "Notebook" && Vector3.Distance(playerTransform.position, transform.position) < 10f)){
 				transform.position = new Vector3(transform.position.x, -20f, transform.position.z);
-				up = false;
-				respawnTime = 120f;
-				gc.CollectNotebook();
-				GameObject gameObject = Instantiate<GameObject>(learningGame);
-				gameObject.GetComponent<MathGameScript>().gc = gc;
-				gameObject.GetComponent<MathGameScript>().baldiScript = bsc;
-				gameObject.GetComponent<MathGameScript>().playerPosition = player.position;
+				gameController.collectBox();
 			}
 		}
 	}
-	public float openingDistance;
-	public GameControllerScript gc;
-	public BaldiScript bsc;
-	public float respawnTime;
-	public bool up;
-	public Transform player;
-	public GameObject learningGame;
-	public AudioSource audioDevice;
+#endregion
 }

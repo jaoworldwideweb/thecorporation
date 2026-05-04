@@ -1,20 +1,25 @@
 ﻿using UnityEngine;
+using System;
 
-public class EntranceScript : MonoBehaviour
-{
-	public void Lower()
-	{
-		transform.position = transform.position - new Vector3(0f, 10f, 0f);
-		if (gc.finaleMode)
-		{
-			wall.material = map;
+public class EntranceScript : MonoBehaviour{
+#region Inspector
+	public enum wallState{
+		raiseWall,
+		lowerWall
+	}
+#endregion
+
+#region Main
+	public void wallAction(wallState currentWallState){
+		switch (currentWallState){
+			case wallState.raiseWall:
+				transform.position += new Vector3(0f, 10f, 0f);
+				break;
+
+			case wallState.lowerWall:
+				transform.position -= new Vector3(0f, 10f, 0f);
+				break;
 		}
 	}
-	public void Raise()
-	{
-		transform.position = transform.position + new Vector3(0f, 10f, 0f);
-	}
-	public GameControllerScript gc;
-	public Material map;
-	public MeshRenderer wall;
+#endregion
 }
