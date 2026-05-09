@@ -4,93 +4,144 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class SwingingDoorScript : MonoBehaviour{
+#region Inspector
 	[Header("Scripts")]
+	[SerializeField] private GameControllerScript gameController;
 	[SerializeField] private BaldiScript baldiScript;
 	
-	[Header("States")]
-	[SerializeField] private bool isDoorOpen;
-	[SerializeField] private bool isDoorLocked;	
+	[Header("Main")]
+	[SerializeField] private bool isDoorOpen = false;
+	[SerializeField] private bool isDoorLocked = false;
+	[SerializeField] private float openTime = 1.3f;
 	
-	[Header("Lock Block")]
-	[SerializeField] private MeshCollider lockBlockMesh;
+	private Coroutine doorRoutine;
+	public enum doorState{
+		openDoor,
+		closeDoor,
+		lockDoor
+	};
+	
+	[Header("Block")]
 	[SerializeField] private GameObject lockBlockObstacle;
 	
-	[Header("Mesh Renderers")]
+	[Header("Textures")]
 	[SerializeField] private MeshRenderer insideMeshRenderer;
 	[SerializeField] private MeshRenderer outsideMeshRenderer;
 	
 	[Header("Materials")]
+	[SerializeField] private Material openedDoorMaterial;	
 	[SerializeField] private Material closedDoorMaterial;
-	[SerializeField] private Material openedDoorMaterial;
 	[SerializeField] private Material lockedDoorMaterial;
 	
 	[Header("Audio")]
 	[SerializeField] private AudioClip doorOpen;
 	[SerializeField] private AudioSource audioOutput;
+#endregion
+
+#region MainFunctions0
+	private void Start(){
+		lockBlockObstacle.SetActive(false);
+		isDoorLocked = false;
+		isDoorOpen = false;
+	}
 	
-	private Coroutine doorRoutine;
-	private Coroutine doorLockRoutine;
-	
-	private void OnTriggerStay(Collider other){
-		if (!isDoorLocked){
-			if (doorRoutine != null){
-				StopCoroutine(doorRoutine);				
-			}
-			
-			doorRoutine = StartCoroutine(openDoor(2f));
-		}
+	private void Update(){
+		// nullspace
 	}
 	
 	private void OnTriggerEnter(Collider other){
-		if (!isDoorLocked){
-			audioOutput.PlayOneShot(doorOpen, 1f);
-			
-			if (other.tag == "Player" && baldiScript.isActiveAndEnabled){
-				baldiScript.Hear(transform.position, 1f);
-			}
+		if(isDoorLocked){
+			return;
 		}
-	}	
+		
+		audioOutput.PlayOneShot(doorOpen, 1f);
+		
+		if(other.tag == "Player" && baldiScript.isActiveAndEnabled){
+			baldiScript.Hear(transform.position, 1f);
+		}
+	}
 	
-	private IEnumerator openDoor(float openTime = 2f){
+	private void OnTriggerStay(Collider other){
+		if(isDoorOpen){
+			return;
+		}
+		
+		doorAction(doorState.openDoor);
+	}
+	
+	private void OnTriggerExit(Collider other){
+		doorAction(doorState.closeDoor);
+	}
+#endregion
+
+#region MainDoorFunctions
+	public void doorAction(doorState performAction){
+		if(isDoorLocked){
+			return;
+		}
+		
+		switch(performAction){
+			case doorState.openDoor:
+				openDoor();
+				break;
+			
+			case doorState.closeDoor:
+				if (doorRoutine != null){
+					StopCoroutine(doorRoutine);				
+				}
+				
+				if(!isDoorOpen){
+					return;
+				}
+				
+				doorRoutine = StartCoroutine(closeDoor());				
+				break;
+				
+			case doorState.lockDoor:
+				lockDoor();
+				break;
+		}
+	}
+	
+	// main
+	private void openDoor(){
+		if(isDoorOpen){
+			return;
+		}
+		
 		isDoorOpen = true;
 		setDoorMaterial(openedDoorMaterial);
-		
+	}
+	
+	private IEnumerator closeDoor(){
 		yield return new WaitForSeconds(openTime);
 		
 		isDoorOpen = false;
 		setDoorMaterial(closedDoorMaterial);
-		
-		doorRoutine = null;
-	}
+	} 
 	
-	public void lockDoor(float time){
-		if (doorLockRoutine != null){
-			StopCoroutine(doorLockRoutine);				
+	private IEnumerator lockDoor(int lockTime = 30){
+		if(isDoorOpen){
+			closeDoor();
 		}
 		
-		doorLockRoutine = StartCoroutine(lockDoorFull(2f));
-	}
-	
-	private IEnumerator lockDoorFull(float lockTime){
-		setDoorState(true);
-		setDoorMaterial(lockedDoorMaterial);
-
+		setDoorMaterial(lockedDoorMaterial);		
+		isDoorLocked = true;
+		lockBlockObstacle.SetActive(true);
+		
 		yield return new WaitForSeconds(lockTime);
 		
-		setDoorState(false);
 		setDoorMaterial(closedDoorMaterial);
-		
-		doorLockRoutine = null;
+		isDoorLocked = false;
+		lockBlockObstacle.SetActive(false);
 	}
 	
+#endregion
+
+#region HelperDoorFunctions
 	private void setDoorMaterial(Material setMaterial){
 		insideMeshRenderer.material = setMaterial;
 		outsideMeshRenderer.material = setMaterial;
 	}
-	
-	private void setDoorState(bool isOpen){
-		lockBlockMesh.enabled = isOpen;
-		lockBlockObstacle.SetActive(isOpen);
-		isDoorLocked = isOpen;
-	}
+#endregion
 }

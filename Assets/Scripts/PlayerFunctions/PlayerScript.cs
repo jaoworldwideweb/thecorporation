@@ -1,43 +1,37 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 
 public class PlayerScript : MonoBehaviour{
 	[Header("Scripts")]
 	[SerializeField] private GameControllerScript gameController;
 	
 	[Header("Main")]
-	[SerializeField] private Quaternion playerRotation;
-	[SerializeField] private Vector3 moveDirection;
 	[SerializeField] private CharacterController characterController;
-	[SerializeField] private Vector3 frozenPosition;
-	[SerializeField] private float playerHeight;
-	[SerializeField] private float fliparoo;
-	[SerializeField] private float flipaturn;
 	[SerializeField] private bool sensitivityActive;
 	[SerializeField] private float sensitivity;	
-	[SerializeField] private float mouseSensitivity;
+	[SerializeField] private float mouseSensitivity = 100f;
+	private Vector3 moveDirection;	
 	
 	[Header("Walk/Run")]
 	[SerializeField] private float playerSpeed;	
-	[SerializeField] private float walkSpeed;
-	[SerializeField] private float runSpeed;
-	[SerializeField] private float slowSpeed;
+	[SerializeField] private float walkSpeed = 5f;
+	[SerializeField] private float runSpeed = 8f;
 	[SerializeField] private bool isMoving;
+	private float mouseX;	
+	private float verticalVelocity;	
+	private const float gravity = -9.81f;	
 	
 	[Header("Stamina")]
 	[SerializeField] public float stamina;	
-	[SerializeField] public float maxStamina;
-	[SerializeField] private float staminaRate;
+	[SerializeField] public float maxStamina = 100f;
+	[SerializeField] private float staminaRate = 20f;
 	[SerializeField] private bool isRunning;
 	[SerializeField] private Slider staminaBar;
 	
 	[Header("Health")]
 	[SerializeField] public float healthValue;	
-	[SerializeField] public float maxHealthValue;
-	[SerializeField] private float healthRate;
+	[SerializeField] public float maxHealthValue = 100f;
+	[SerializeField] private float healthRate = 5f;
 	[SerializeField] private Slider healthBar;
 	
 	private void Start(){
@@ -45,77 +39,71 @@ public class PlayerScript : MonoBehaviour{
 			sensitivityActive = true;
 		}
 		
-		playerHeight = transform.position.y;
 		stamina = maxStamina;
-		playerRotation = transform.rotation;
-		mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity");
+		mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", mouseSensitivity);
 	}
 	
 	private void Update(){
-		transform.position = new Vector3(transform.position.x, playerHeight, transform.position.z);
-		
-		isMoving = characterController.velocity.sqrMagnitude > 0.01f;
 		isRunning = Singleton<InputManager>.Instance.GetActionKey(InputAction.Run);
 		
 		mouseMove();
 		playerMove();
+		healthCheck();
 		staminaCheck();
 		
-		if (characterController.velocity.magnitude > 0f){
+		isMoving = moveDirection.sqrMagnitude > 0.0001f;
+
+		if (characterController.velocity.sqrMagnitude > 0.01f){
 			gameController.lockMouse();
 		}
 	}
 	
 	private void mouseMove(){
-		playerRotation.eulerAngles = new Vector3(playerRotation.eulerAngles.x, playerRotation.eulerAngles.y, 0f);
-		playerRotation.eulerAngles = playerRotation.eulerAngles + Vector3.up * Input.GetAxis("Mouse X") * mouseSensitivity * Time.timeScale;
-		transform.rotation = playerRotation;
+		float sensitivity = mouseSensitivity * 2f;
+		
+		mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
+		transform.Rotate(Vector3.up * mouseX);
 	}
-	
+		
 	private void playerMove(){
-		Vector3 movement = Vector3.zero;
-		Vector3 lateralMovement = Vector3.zero;
+		Vector3 input = Vector3.zero;
 		
-		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveForward)) movement = transform.forward;
-		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveBackward)) movement = -transform.forward;
-		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveLeft)) lateralMovement = -transform.right;
-		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveRight)) lateralMovement = transform.right;
+		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveForward)) input += transform.forward;
+		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveBackward)) input -= transform.forward;
+		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveLeft)) input -= transform.right;
+		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveRight)) input += transform.right;
 		
-		if (stamina > 0f){
-			if (Singleton<InputManager>.Instance.GetActionKey(InputAction.Run)){
-				playerSpeed = runSpeed;
-				sensitivity = 1f;
-			}
-			else{
-				playerSpeed = walkSpeed;
-				
-				if (sensitivityActive){
-					sensitivity = Mathf.Clamp((movement + lateralMovement).magnitude, 0f, 1f);
-				}
-				else{
-					sensitivity = 1f;
-				}
-			}
+		float inputMagnitude = Mathf.Clamp01(input.magnitude);
+		Vector3 direction = input.normalized;
+
+		// speed logic
+		if (stamina > 0.1f && isRunning){
+			playerSpeed = runSpeed;
+			sensitivity = 1f;
 		}
 		else{
 			playerSpeed = walkSpeed;
-			
-			if (sensitivityActive){
-				sensitivity = Mathf.Clamp((lateralMovement + movement).magnitude, 0f, 1f);
-			}
-			else{
-				sensitivity = 1f;
-			}
+			sensitivity = sensitivityActive ? inputMagnitude : 1f;
 		}
-		
-		playerSpeed *= Time.deltaTime;
-		moveDirection = (movement + lateralMovement).normalized * playerSpeed * sensitivity;
-		
+
+		// horizontal movement
+		Vector3 horizontalMove = direction * playerSpeed * sensitivity;
+
+		// gravity
+		if (characterController.isGrounded && verticalVelocity < 0f){
+			verticalVelocity = -2f;
+		}
+		verticalVelocity += gravity * Time.deltaTime;
+
+		Vector3 finalMove = horizontalMove;
+		finalMove.y = verticalVelocity;
+
+		moveDirection = finalMove * Time.deltaTime;
 		characterController.Move(moveDirection);
 	}
 	
 	private void staminaCheck(){
-		if (isMoving && isRunning && stamina > 0f){
+		if (isMoving && isRunning && stamina > 0.1f){
 			stamina -= staminaRate * Time.deltaTime;
 		}
 		else if (stamina < maxStamina){
@@ -124,21 +112,25 @@ public class PlayerScript : MonoBehaviour{
 
 		stamina = Mathf.Clamp(stamina, 0f, maxStamina);
 
-		float target = (stamina / maxStamina) * 100f;
-		staminaBar.value = Mathf.MoveTowards(staminaBar.value, target, Time.deltaTime * 600f);
+		if (staminaBar != null){
+			float target = stamina / maxStamina;
+			staminaBar.value = Mathf.MoveTowards(staminaBar.value, target, Time.deltaTime * 5f);
+		}
 	}
 	
 	private void healthCheck(){
 		float regenThreshold = maxHealthValue * 0.4f;
 		
 		if (!isMoving && !isRunning && healthValue < regenThreshold){
-			healthValue += healthRate * Time.deltaTime / 2;
+			healthValue += (healthRate * 0.5f) * Time.deltaTime;
 		}
 		
 		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
 		
-		float target = (healthValue / maxHealthValue) * 100f;
-		healthBar.value = Mathf.MoveTowards(healthBar.value, target, Time.deltaTime * 600f);
+		if (healthBar != null){
+			float target = healthValue / maxHealthValue;
+			healthBar.value = Mathf.MoveTowards(healthBar.value, target, Time.deltaTime * 5f);
+		}
 	}
 	
 	public void healthAction(float value){
@@ -147,7 +139,7 @@ public class PlayerScript : MonoBehaviour{
 	}
 	
 	private void OnTriggerEnter(Collider other){
-		if (other.transform.name == "Baldi" & !gameController.isDebugMode){
+		if (other.transform.name == "Baldi" && gameController != null && !gameController.isDebugMode){
 			gameController.isGameOver = true;
 		}
 	}
