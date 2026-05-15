@@ -13,6 +13,7 @@ TagManager:
   - BSODA
   - YCTP_Button
   - Button
+  - Box
   layers:
   - Default
   - TransparentFX

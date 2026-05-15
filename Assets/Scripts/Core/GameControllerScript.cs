@@ -30,8 +30,19 @@ public class GameControllerScript : MonoBehaviour{
 	[SerializeField] private GameObject pauseMenu;
 	[SerializeField] private GameObject playerHUD;
 	
-	[Header("Notebook")]
-	[SerializeField] private TMP_Text boxCounter;	
+	[Header("Box")]
+	[SerializeField] private TMP_Text boxCounter;
+	
+	[SerializeField] private Transform boxGPITransform;
+	[SerializeField] private GameObject boxGPIGameObject;
+	[SerializeField] private float bobSpeed;
+	[SerializeField] private Vector3 startPosition;
+	[SerializeField] private Vector3 bobOffset;
+	
+	[SerializeField] private AudioClip grabBoxSound;
+	[SerializeField] private AudioClip dropBoxSound;
+	
+	[SerializeField] public bool isHoldingBox;	
 	[SerializeField] public int collectedBoxes = 0;
 	[SerializeField] public int maxBoxes = 9;
 	
@@ -59,7 +70,9 @@ public class GameControllerScript : MonoBehaviour{
 #region MainFunctions
 	private void Start(){
 		lockMouse();
-		updateNotebookCount();
+		updateBoxCount();
+		startPosition = boxGPITransform.localPosition;
+		boxGPIGameObject.SetActive(false);
 		
 		soundHandler.loopMusic(musicTracks[0], 0);
 	}
@@ -73,6 +86,11 @@ public class GameControllerScript : MonoBehaviour{
 			else{
 				unpauseGame();
 			}
+		}
+		
+		// bob
+		if(!isGamePaused){
+			bobUIBox();
 		}
 		
 		// time
@@ -149,6 +167,10 @@ public class GameControllerScript : MonoBehaviour{
 		float gameOverDelay = 0.5f;
 		Time.timeScale = 0f;
 		
+		/* this is wrong; the function for WaitDeltaTime in loop has been
+		deprecated because of lag and heavy overhead for the c# compiler.
+		*/
+		
 		gameOverDelay -= Time.unscaledDeltaTime * 0.5f;
 		playerCamera.farClipPlane = gameOverDelay * 400f;
 		
@@ -171,17 +193,38 @@ public class GameControllerScript : MonoBehaviour{
 #endregion
 	
 #region NotebookFunctions
- 	private void updateNotebookCount(){
+ 	private void updateBoxCount(){
 		boxCounter.text = collectedBoxes.ToString() + "/" + maxBoxes.ToString() + "Boxes";
 	}
 	
+	private void bobUIBox(){
+		if (!playerScript.isMoving){
+			boxGPITransform.localPosition = Vector3.Lerp(boxGPITransform.localPosition, startPosition, Time.deltaTime * 8f);
+			return;
+		}
+
+		float wave = (Mathf.Sin(Time.time * bobSpeed) + 1f) / 2f;
+
+		boxGPITransform.localPosition = Vector3.Lerp(startPosition, startPosition + bobOffset, wave);
+	}
+	
 	public void collectBox(){
-		collectedBoxes++;
-		updateNotebookCount();
+		if(isHoldingBox){
+			return;
+		}
+		
+		isHoldingBox = true;
+		soundHandler.playSound(grabBoxSound, 0);
+		boxGPIGameObject.SetActive(true);
+		updateBoxCount();
 		
 		if (playerScript.stamina < playerScript.maxStamina){
-			playerScript.stamina = playerScript.maxStamina;
+			playerScript.stamina = playerScript.maxStamina - 30f;
 		}
+	}
+	
+	public void putBoxInPlace(){
+		soundHandler.playSound(grabBoxSound, 0);
 		
 		if(!hasGameStarted){
 			if(collectedBoxes > 1){

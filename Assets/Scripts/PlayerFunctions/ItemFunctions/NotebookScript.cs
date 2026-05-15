@@ -8,6 +8,22 @@ public class NotebookScript : MonoBehaviour{
 	[Header("Main")]
 	[SerializeField] private GameControllerScript gameController;
 	[SerializeField] private Transform playerTransform;
+	[SerializeField] private boxColorList boxColor;
+	
+	public enum boxColorList{
+		//normal
+		red,
+		green,
+		blue,
+		yellow,
+		orange,
+		
+		//light
+		lightred,
+		lightgreen,
+		lightblue,
+		lightorange,
+	};
 #endregion
 
 #region MainFunctions
@@ -16,7 +32,11 @@ public class NotebookScript : MonoBehaviour{
 			Ray ray = Camera.main.ScreenPointToRay(new Vector3((float)(Screen.width / 2), (float)(Screen.height / 2), 0f));
 			RaycastHit raycastHit;
 			
-			if (Physics.Raycast(ray, out raycastHit) && (raycastHit.transform.tag == "Notebook" && Vector3.Distance(playerTransform.position, transform.position) < 10f)){
+			if (Physics.Raycast(ray, out raycastHit) && (raycastHit.transform.tag == "Box" && Vector3.Distance(playerTransform.position, transform.position) < 10f)){
+				if(gameController.isHoldingBox){
+					return;
+				}
+				
 				transform.position = new Vector3(transform.position.x, -20f, transform.position.z);
 				gameController.collectBox();
 			}

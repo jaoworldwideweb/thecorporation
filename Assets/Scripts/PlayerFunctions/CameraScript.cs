@@ -33,9 +33,8 @@ public class CameraScript : MonoBehaviour{
 			float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
 			xRotation -= mouseY;
-			xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-
-			// apply vertical rotation to camera only
+			xRotation = Mathf.Clamp(xRotation, -90f, 25f);
+			
 			transform.localRotation = Quaternion.Euler(xRotation, lookBehind, 0f);
 		}
 		else{

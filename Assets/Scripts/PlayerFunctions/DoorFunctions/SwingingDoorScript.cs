@@ -29,9 +29,10 @@ public class SwingingDoorScript : MonoBehaviour{
 	[SerializeField] private MeshRenderer outsideMeshRenderer;
 	
 	[Header("Materials")]
-	[SerializeField] private Material openedDoorMaterial;	
-	[SerializeField] private Material closedDoorMaterial;
-	[SerializeField] private Material lockedDoorMaterial;
+	[Tooltip("remember. inside is 0 and outside is 1.")]
+	[SerializeField] private Material[] openedDoorMaterial;
+	[SerializeField] private Material[] closedDoorMaterial;
+	[SerializeField] private Material[] lockedDoorMaterial;
 	
 	[Header("Audio")]
 	[SerializeField] private AudioClip doorOpen;
@@ -110,14 +111,14 @@ public class SwingingDoorScript : MonoBehaviour{
 		}
 		
 		isDoorOpen = true;
-		setDoorMaterial(openedDoorMaterial);
+		setDoorMaterial(openedDoorMaterial[0], openedDoorMaterial[1]);
 	}
 	
 	private IEnumerator closeDoor(){
 		yield return new WaitForSeconds(openTime);
 		
 		isDoorOpen = false;
-		setDoorMaterial(closedDoorMaterial);
+		setDoorMaterial(closedDoorMaterial[0], closedDoorMaterial[1]);
 	} 
 	
 	private IEnumerator lockDoor(int lockTime = 30){
@@ -125,13 +126,13 @@ public class SwingingDoorScript : MonoBehaviour{
 			closeDoor();
 		}
 		
-		setDoorMaterial(lockedDoorMaterial);		
+		setDoorMaterial(lockedDoorMaterial[0], lockedDoorMaterial[1]);		
 		isDoorLocked = true;
 		lockBlockObstacle.SetActive(true);
 		
 		yield return new WaitForSeconds(lockTime);
 		
-		setDoorMaterial(closedDoorMaterial);
+		setDoorMaterial(closedDoorMaterial[0], closedDoorMaterial[1]);
 		isDoorLocked = false;
 		lockBlockObstacle.SetActive(false);
 	}
@@ -139,9 +140,9 @@ public class SwingingDoorScript : MonoBehaviour{
 #endregion
 
 #region HelperDoorFunctions
-	private void setDoorMaterial(Material setMaterial){
-		insideMeshRenderer.material = setMaterial;
-		outsideMeshRenderer.material = setMaterial;
+	private void setDoorMaterial(Material setMaterialIn, Material setMaterialOut){
+		insideMeshRenderer.material = setMaterialIn;
+		outsideMeshRenderer.material = setMaterialOut;
 	}
 #endregion
 }

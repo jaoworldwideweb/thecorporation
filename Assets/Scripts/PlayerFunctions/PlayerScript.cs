@@ -16,7 +16,7 @@ public class PlayerScript : MonoBehaviour{
 	[SerializeField] private float playerSpeed;	
 	[SerializeField] private float walkSpeed = 5f;
 	[SerializeField] private float runSpeed = 8f;
-	[SerializeField] private bool isMoving;
+	[SerializeField] public bool isMoving;
 	private float mouseX;	
 	private float verticalVelocity;	
 	private const float gravity = -9.81f;	
@@ -39,20 +39,33 @@ public class PlayerScript : MonoBehaviour{
 			sensitivityActive = true;
 		}
 		
+		mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", mouseSensitivity) * 3.14f;		
+		
 		stamina = maxStamina;
-		mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", mouseSensitivity);
+		healthValue = maxHealthValue;
+		
+		if (staminaBar != null){
+			staminaBar.minValue = 0f;
+			staminaBar.maxValue = 1f;
+			staminaBar.value = 1f;
+		}
+
+		if (healthBar != null){
+			healthBar.minValue = 0f;
+			healthBar.maxValue = 1f;
+			healthBar.value = 1f;
+		}
 	}
 	
 	private void Update(){
 		isRunning = Singleton<InputManager>.Instance.GetActionKey(InputAction.Run);
+		isMoving = getMovementInput().sqrMagnitude > 0f;
 		
 		mouseMove();
 		playerMove();
 		healthCheck();
 		staminaCheck();
 		
-		isMoving = moveDirection.sqrMagnitude > 0.0001f;
-
 		if (characterController.velocity.sqrMagnitude > 0.01f){
 			gameController.lockMouse();
 		}
@@ -64,22 +77,37 @@ public class PlayerScript : MonoBehaviour{
 		mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
 		transform.Rotate(Vector3.up * mouseX);
 	}
-		
-	private void playerMove(){
+	
+	private Vector3 getMovementInput(){
 		Vector3 input = Vector3.zero;
 		
-		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveForward)) input += transform.forward;
-		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveBackward)) input -= transform.forward;
-		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveLeft)) input -= transform.right;
-		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveRight)) input += transform.right;
+		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveForward)){
+			input += transform.forward;			
+		}
+		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveBackward)){
+			input -= transform.forward;			
+		}
+		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveLeft)){
+			input -= transform.right;			
+		}
+		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveRight)){
+			input += transform.right;			
+		}
 		
-		float inputMagnitude = Mathf.Clamp01(input.magnitude);
-		Vector3 direction = input.normalized;
+		return input.normalized;
+	}
+		
+	private void playerMove(){
+		float inputMagnitude = Mathf.Clamp01(getMovementInput().magnitude);
 
 		// speed logic
-		if (stamina > 0.1f && isRunning){
+		if (stamina > 0.1f & isRunning){
 			playerSpeed = runSpeed;
 			sensitivity = 1f;
+		}
+		else if(stamina >= 0 & isRunning){
+			playerSpeed = walkSpeed / 1.5f;
+			sensitivity = sensitivityActive ? inputMagnitude : 1f;
 		}
 		else{
 			playerSpeed = walkSpeed;
@@ -87,7 +115,7 @@ public class PlayerScript : MonoBehaviour{
 		}
 
 		// horizontal movement
-		Vector3 horizontalMove = direction * playerSpeed * sensitivity;
+		Vector3 horizontalMove = getMovementInput() * playerSpeed * sensitivity;
 
 		// gravity
 		if (characterController.isGrounded && verticalVelocity < 0f){
@@ -103,10 +131,13 @@ public class PlayerScript : MonoBehaviour{
 	}
 	
 	private void staminaCheck(){
-		if (isMoving && isRunning && stamina > 0.1f){
+		if(isMoving & isRunning && stamina > 0.1f){
 			stamina -= staminaRate * Time.deltaTime;
 		}
-		else if (stamina < maxStamina){
+		else if(stamina < maxStamina && isMoving || isRunning){
+			stamina += staminaRate * Time.deltaTime / 2.5f;
+		}
+		else if(stamina < maxStamina && !isMoving || !isRunning){
 			stamina += staminaRate * Time.deltaTime;
 		}
 
