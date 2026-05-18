@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 51031340521856201}
   - component: {fileID: 4586083717729451337}
   - component: {fileID: 8326348981181102372}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Hand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -106,7 +106,7 @@ GameObject:
   - component: {fileID: 3887068942865994600}
   - component: {fileID: 8366873425843936866}
   - component: {fileID: 2664147490905047971}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Arm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -188,7 +188,7 @@ GameObject:
   - component: {fileID: 5246205117445073505}
   - component: {fileID: 2248459295228078179}
   - component: {fileID: 6166613220765084604}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Plate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -283,7 +283,7 @@ GameObject:
   - component: {fileID: 2204278112341035095}
   - component: {fileID: 971119966813240105}
   - component: {fileID: 6294866109206422227}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Arm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -364,7 +364,7 @@ GameObject:
   - component: {fileID: 9048603015051273733}
   - component: {fileID: 5259466396701457706}
   - component: {fileID: 1030268634804152543}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Arm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -446,7 +446,7 @@ GameObject:
   - component: {fileID: 6006439350649545135}
   - component: {fileID: 5110199081049885408}
   - component: {fileID: 3969527919575596616}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Hand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -538,7 +538,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3692833115276756537}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Outline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -573,7 +573,7 @@ GameObject:
   - component: {fileID: 8799093488866934048}
   - component: {fileID: 3990839373365644776}
   - component: {fileID: 1936194122940589197}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Plate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -666,7 +666,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2818727041762213162}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Arm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -698,7 +698,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2520143283805580369}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Hands
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -733,7 +733,7 @@ GameObject:
   - component: {fileID: 1529839486247439640}
   - component: {fileID: 568250216535857233}
   - component: {fileID: 7023721407047125394}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Plate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -826,7 +826,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 560796242248446775}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: FullArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -861,7 +861,7 @@ GameObject:
   - component: {fileID: 5526384175929961304}
   - component: {fileID: 3085456006427815575}
   - component: {fileID: 3459012152425509770}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Plate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -957,7 +957,7 @@ GameObject:
   - component: {fileID: 6283219761912788263}
   - component: {fileID: 5987541213595015423}
   - component: {fileID: 7960592223324674838}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Hand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1049,7 +1049,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5542704163682014877}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HUDBox
   m_TagString: Notebook
   m_Icon: {fileID: 0}
@@ -1065,7 +1065,7 @@ Transform:
   m_GameObject: {fileID: 5542704163682009764}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 1.5, y: 0.45, z: 1.5}
   m_Children:
   - {fileID: 2213730983334988613}
   - {fileID: 2520143283805580369}
@@ -1081,7 +1081,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1717439819595742041}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: FullArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1113,7 +1113,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2930138669493670267}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Arm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1148,7 +1148,7 @@ GameObject:
   - component: {fileID: 193935730018911765}
   - component: {fileID: 5364150805650951928}
   - component: {fileID: 4123830704047901489}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Hand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1243,7 +1243,7 @@ GameObject:
   - component: {fileID: 1153695472805379199}
   - component: {fileID: 7424576122336307330}
   - component: {fileID: 7983756206108970970}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Plate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1339,7 +1339,7 @@ GameObject:
   - component: {fileID: 7469133798172141395}
   - component: {fileID: 1760865434168588383}
   - component: {fileID: 3895762142419418665}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Plate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1432,7 +1432,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2213730983334988613}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Box
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1470,7 +1470,7 @@ GameObject:
   - component: {fileID: 3389429100997731036}
   - component: {fileID: 5806020380552207477}
   - component: {fileID: 2831515973637724017}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Arm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1549,7 +1549,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 600296812071240375}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Outine
   m_TagString: Untagged
   m_Icon: {fileID: 0}

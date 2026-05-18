@@ -36,6 +36,7 @@ public class SwingingDoorScript : MonoBehaviour{
 	
 	[Header("Audio")]
 	[SerializeField] private AudioClip doorOpen;
+	[SerializeField] private AudioClip doorClose;
 	[SerializeField] private AudioSource audioOutput;
 #endregion
 
@@ -55,7 +56,9 @@ public class SwingingDoorScript : MonoBehaviour{
 			return;
 		}
 		
-		audioOutput.PlayOneShot(doorOpen, 1f);
+		if(!isDoorOpen){
+			audioOutput.PlayOneShot(doorOpen, 1f);			
+		}
 		
 		if(other.tag == "Player" && baldiScript.isActiveAndEnabled){
 			baldiScript.Hear(transform.position, 1f);
@@ -117,6 +120,7 @@ public class SwingingDoorScript : MonoBehaviour{
 	private IEnumerator closeDoor(){
 		yield return new WaitForSeconds(openTime);
 		
+		audioOutput.PlayOneShot(doorClose, 1f);
 		isDoorOpen = false;
 		setDoorMaterial(closedDoorMaterial[0], closedDoorMaterial[1]);
 	} 

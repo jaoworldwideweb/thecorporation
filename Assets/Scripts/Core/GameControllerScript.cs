@@ -34,7 +34,7 @@ public class GameControllerScript : MonoBehaviour{
 	[SerializeField] private TMP_Text boxCounter;
 	
 	[SerializeField] private Transform boxGPITransform;
-	[SerializeField] private GameObject boxGPIGameObject;
+	[SerializeField] private GameObject[] boxGPIGameObject;
 	[SerializeField] private float bobSpeed;
 	[SerializeField] private Vector3 startPosition;
 	[SerializeField] private Vector3 bobOffset;
@@ -70,11 +70,14 @@ public class GameControllerScript : MonoBehaviour{
 #region MainFunctions
 	private void Start(){
 		lockMouse();
-		updateBoxCount();
+		boxCounter.text = updateBoxCount();
 		startPosition = boxGPITransform.localPosition;
-		boxGPIGameObject.SetActive(false);
 		
-		soundHandler.loopMusic(musicTracks[0], 0);
+		foreach (GameObject HUDobject in boxGPIGameObject){
+			HUDobject.SetActive(false);
+		}
+		
+		soundHandler.loopMusic(musicTracks[UnityEngine.Random.Range(0, musicTracks.Length)], 0);
 	}
 	
 	private void Update(){
@@ -87,13 +90,7 @@ public class GameControllerScript : MonoBehaviour{
 				unpauseGame();
 			}
 		}
-		
-		// bob
-		if(!isGamePaused){
-			bobUIBox();
-		}
-		
-		// time
+
 		if (!isGamePaused & Time.timeScale != 1f){
 			Time.timeScale = 1f;
 		}
@@ -103,10 +100,8 @@ public class GameControllerScript : MonoBehaviour{
 			}
 		}
 		
-		// game over
-		if (isGameOver){
-			gameOverState();
-		}
+		bobUIBox();
+		gameOverState();
 	}
 #endregion
 
@@ -164,18 +159,22 @@ public class GameControllerScript : MonoBehaviour{
 
 #region GameOverFunctions
 	private void gameOverState(){
-		float gameOverDelay = 0.5f;
-		Time.timeScale = 0f;
+		if(!isGameOver){
+			return;
+		}
 		
-		/* this is wrong; the function for WaitDeltaTime in loop has been
-		deprecated because of lag and heavy overhead for the c# compiler.
-		*/
+		float gameOverDelay = 0.5f;
+		bool hasGameOverInitialized = false;
+		
+		if (!hasGameOverInitialized){
+			hasGameOverInitialized = true;
+			Time.timeScale = 0f;
+			RenderSettings.skybox = gameOverSkybox;
+			StartCoroutine(hideHUD());
+		}
 		
 		gameOverDelay -= Time.unscaledDeltaTime * 0.5f;
 		playerCamera.farClipPlane = gameOverDelay * 400f;
-		
-		RenderSettings.skybox = gameOverSkybox;
-		StartCoroutine(hideHUD());
 		
 		if (gameOverDelay <= 0f){
 			Time.timeScale = 1f;
@@ -193,13 +192,15 @@ public class GameControllerScript : MonoBehaviour{
 #endregion
 	
 #region NotebookFunctions
- 	private void updateBoxCount(){
-		boxCounter.text = collectedBoxes.ToString() + "/" + maxBoxes.ToString() + "Boxes";
+ 	private string updateBoxCount(){
+		// boxCounter.text = updateBoxCount;
+		
+		return $"{collectedBoxes} out of {maxBoxes} boxes";
 	}
 	
 	private void bobUIBox(){
 		if (!playerScript.isMoving){
-			boxGPITransform.localPosition = Vector3.Lerp(boxGPITransform.localPosition, startPosition, Time.deltaTime * 8f);
+			boxGPITransform.localPosition = Vector3.Lerp(boxGPITransform.localPosition, startPosition, Time.deltaTime * 8f); // larppppp
 			return;
 		}
 
@@ -215,16 +216,31 @@ public class GameControllerScript : MonoBehaviour{
 		
 		isHoldingBox = true;
 		soundHandler.playSound(grabBoxSound, 0);
-		boxGPIGameObject.SetActive(true);
 		updateBoxCount();
+		foreach (GameObject HUDobject in boxGPIGameObject){
+			HUDobject.SetActive(true);
+		}		
 		
 		if (playerScript.stamina < playerScript.maxStamina){
-			playerScript.stamina = playerScript.maxStamina - 30f;
+			playerScript.stamina = Mathf.Min(playerScript.maxStamina, playerScript.stamina + (playerScript.maxStamina - playerScript.stamina) / 4f);
 		}
 	}
 	
 	public void putBoxInPlace(){
-		soundHandler.playSound(grabBoxSound, 0);
+		if(!isHoldingBox){
+			return;
+		}
+		
+		isHoldingBox = false;		
+		soundHandler.playSound(dropBoxSound, 0);
+		boxCounter.text = updateBoxCount();
+		foreach (GameObject HUDobject in boxGPIGameObject){
+			HUDobject.SetActive(true);
+		}		
+		
+		if (playerScript.stamina < playerScript.maxStamina){
+			playerScript.stamina = playerScript.maxStamina;
+		}
 		
 		if(!hasGameStarted){
 			if(collectedBoxes > 1){

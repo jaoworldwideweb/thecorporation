@@ -111,6 +111,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: d965dfe1ad4283d4f9fab4031f32a081, type: 2}
   - {fileID: 2100000, guid: d965dfe1ad4283d4f9fab4031f32a081, type: 2}
   doorOpen: {fileID: 8300000, guid: 9e4c1e7855ffe1347a8884c748cc0fb7, type: 3}
+  doorClose: {fileID: 8300000, guid: bb8257ffc0517bf468f1fb4d57cfe641, type: 3}
   audioOutput: {fileID: 5768147593521533805}
 --- !u!82 &5768147593521533805
 AudioSource:
