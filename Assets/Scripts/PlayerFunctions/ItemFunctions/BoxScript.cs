@@ -1,15 +1,12 @@
 using UnityEngine;
 using System;
 using System.Collections;
+using GeneralLibrary;
 
-public class BoxScript : MonoBehaviour{
-#region Inspector
-	[Header("Main")]
-	[SerializeField] private GameControllerScript gameController;
-	[SerializeField] private Transform playerTransform;
-	[SerializeField] private boxColorList boxColor;
-
-	public enum boxColorList{
+public class BoxData{
+	public boxColor currentBoxColor = boxColor.Red;
+	public int boxCode = 0000;
+	public enum boxColor{
 		Red,
 		Green,
 		Blue,
@@ -20,10 +17,27 @@ public class BoxScript : MonoBehaviour{
 		LightGreen,
 		LightBlue,
 		LightOrange
-	}
+	}	
+}
+
+public class BoxScript : MonoBehaviour{
+#region Inspector
+	[Header("Main")]
+	[SerializeField] private GameControllerScript gameController;
+	[SerializeField] private Transform playerTransform;
+	[SerializeField] private BoxData currentBoxData;
 #endregion
 
 #region MainFunctions
+	private void Start(){
+		if (currentBoxData == null){
+			currentBoxData = new BoxData();
+		}
+
+		currentBoxData.currentBoxColor = cGeneral.RandomEnumValue<BoxData.boxColor>();
+		currentBoxData.boxCode = UnityEngine.Random.Range(1000, 9000);
+	}
+	
 	private void Update(){
 		if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact)){
 			return;			
@@ -46,9 +60,18 @@ public class BoxScript : MonoBehaviour{
 					return;					
 				}
 				
+				
 				gameObject.SetActive(false);
 				gameController.collectBox();
 			}
+		}
+	}
+#endregion
+
+#region API
+	private void SendBoxData(){
+		if(gameController.isHoldingBox){
+			// add stuff here
 		}
 	}
 #endregion

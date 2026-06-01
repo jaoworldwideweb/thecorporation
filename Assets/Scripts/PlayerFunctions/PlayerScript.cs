@@ -5,6 +5,13 @@ public class PlayerScript : MonoBehaviour{
 	[Header("Scripts")]
 	[SerializeField] private GameControllerScript gameController;
 	
+	[Header("Footsteps")]
+	[SerializeField] private AudioSource footstepSource;
+	[SerializeField] private AudioClip footstepClip;
+	[SerializeField] private float footstepTimer;
+	[SerializeField] private float footstepDelayWalk;
+	[SerializeField] private float footstepDelayRun;
+	
 	[Header("Main")]
 	[SerializeField] private CharacterController characterController;
 	[SerializeField] private bool sensitivityActive;
@@ -25,7 +32,7 @@ public class PlayerScript : MonoBehaviour{
 	[SerializeField] public float stamina;	
 	[SerializeField] public float maxStamina = 100f;
 	[SerializeField] private float staminaRate = 20f;
-	[SerializeField] private bool isRunning;
+	[SerializeField] public bool isRunning;
 	[SerializeField] private Slider staminaBar;
 	
 	[Header("Health")]
@@ -64,10 +71,26 @@ public class PlayerScript : MonoBehaviour{
 		mouseMove();
 		playerMove();
 		healthCheck();
+		handleFootsteps();
 		staminaCheck();
 		
 		if (characterController.velocity.sqrMagnitude > 0.01f){
 			gameController.lockMouse();
+		}
+	}
+	
+	private void handleFootsteps(){
+		if (isMoving){
+			footstepTimer -= Time.deltaTime;
+
+			if (footstepTimer <= 0f){
+				footstepSource.pitch = UnityEngine.Random.Range(0.9f, 1.1f);
+				footstepSource.PlayOneShot(footstepClip, 0.5f);
+				footstepTimer = isRunning ? footstepDelayRun : footstepDelayWalk;
+			}
+		}
+		else{
+			footstepTimer = 0f;
 		}
 	}
 	
@@ -99,8 +122,7 @@ public class PlayerScript : MonoBehaviour{
 		
 	private void playerMove(){
 		float inputMagnitude = Mathf.Clamp01(getMovementInput().magnitude);
-
-		// speed logic
+		
 		if (stamina > 0.1f & isRunning){
 			playerSpeed = runSpeed;
 			sensitivity = 1f;
@@ -113,18 +135,20 @@ public class PlayerScript : MonoBehaviour{
 			playerSpeed = walkSpeed;
 			sensitivity = sensitivityActive ? inputMagnitude : 1f;
 		}
-
+		
 		// horizontal movement
 		Vector3 horizontalMove = getMovementInput() * playerSpeed * sensitivity;
-
+		
+		/*
 		// gravity
 		if (characterController.isGrounded && verticalVelocity < 0f){
 			verticalVelocity = -2f;
 		}
 		verticalVelocity += gravity * Time.deltaTime;
-
-		Vector3 finalMove = horizontalMove;
 		finalMove.y = verticalVelocity;
+		*/
+		
+		Vector3 finalMove = horizontalMove;		
 
 		moveDirection = finalMove * Time.deltaTime;
 		characterController.Move(moveDirection);

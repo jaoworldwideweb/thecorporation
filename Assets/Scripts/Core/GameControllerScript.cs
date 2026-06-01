@@ -1,13 +1,20 @@
-﻿using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
+﻿// main libraries
 using System;
 using System.Collections;
+
+// unity libraries
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+
+// my libraries
+using TextLibrary;
+using MathLibrary;
+using GeneralLibrary;
 
 public class GameControllerScript : MonoBehaviour{
 	[Header("Scripts")]
-	[SerializeField] private CursorControllerScript cursorController;
 	[SerializeField] private PlayerScript playerScript;
 	
 	[Header("Player")]
@@ -16,39 +23,38 @@ public class GameControllerScript : MonoBehaviour{
 	
 	[Header("Baldi")]
 	[SerializeField] private GameObject baldi;
-	[SerializeField] public BaldiScript baldiScript;
+	[SerializeField] private BaldiScript baldiScript;
 	
 	[Header("States")]
-	[SerializeField] private bool hasGameStarted = false;
-	[SerializeField] public bool isGameFinale = false;
-	[SerializeField] public bool isGameOver = false;
-	[SerializeField] public bool isDebugMode = false;
-	[SerializeField] public bool isMouseLocked =  true;
-	[SerializeField] private bool isGamePaused = false;
+	public bool hasGameStarted = false;
+	public bool isGameFinale = false;
+	public bool isGameOver = false;
+	public bool isDebugMode = false;
+	public bool isMouseLocked =  true;
+	public bool isGamePaused = false;
 	
 	[Header("Graphical Player Interface")]
 	[SerializeField] private GameObject pauseMenu;
 	[SerializeField] private GameObject playerHUD;
 	
 	[Header("Box")]
+	[SerializeField] private BoxData currentBoxData;
 	[SerializeField] private TMP_Text boxCounter;
-	
-	[SerializeField] private Transform boxGPITransform;
-	[SerializeField] private GameObject[] boxGPIGameObject;
-	[SerializeField] private float bobSpeed;
+	[SerializeField] private GameObject boxGPIGameObject;
 	[SerializeField] private Vector3 startPosition;
-	[SerializeField] private Vector3 bobOffset;
-	
+	[SerializeField] private Vector3 bobOffset;	
+	[SerializeField] private float bobSpeed;
+	[SerializeField] private float bobTime;
+	[SerializeField] private float bobAmount;
 	[SerializeField] private AudioClip grabBoxSound;
 	[SerializeField] private AudioClip dropBoxSound;
-	
-	[SerializeField] public bool isHoldingBox;	
-	[SerializeField] public int collectedBoxes = 0;
-	[SerializeField] public int maxBoxes = 9;
+	public bool isHoldingBox;	
+	public int collectedBoxes = 0;
+	public int maxBoxes = 9;
 	
 	[Header("Exit")]
-	[SerializeField] public int exitsReached;
-	[SerializeField] private EntranceScript[] entrances;
+	public int exitsReached;
+	[SerializeField] private EntranceScript entrance;
 	
 	[Header("Scene Management")]
 	[SerializeField] private Material gameOverSkybox;
@@ -60,22 +66,13 @@ public class GameControllerScript : MonoBehaviour{
 	[SerializeField] private SoundHandler soundHandler; 
 	[SerializeField] private AudioClip[] musicTracks;
 	
-	/*
-	AUDIO STACK ORDER:
-		0 - music
-		1 - general sound effects
-		2 - player made sound effects
-	*/
-	
 #region MainFunctions
 	private void Start(){
 		lockMouse();
 		boxCounter.text = updateBoxCount();
-		startPosition = boxGPITransform.localPosition;
+		startPosition = boxGPIGameObject.transform.localPosition;
 		
-		foreach (GameObject HUDobject in boxGPIGameObject){
-			HUDobject.SetActive(false);
-		}
+		boxGPIGameObject.SetActive(false);
 		
 		soundHandler.loopMusic(musicTracks[UnityEngine.Random.Range(0, musicTracks.Length)], 0);
 	}
@@ -107,12 +104,12 @@ public class GameControllerScript : MonoBehaviour{
 
 #region MouseFunction
 	public void lockMouse(){
-		cursorController.LockCursor();
+		gActions.LockCursor();
 		isMouseLocked = true;
 	}
 	
 	public void unlockMouse(){
-		cursorController.UnlockCursor();
+		gActions.UnlockCursor();
 		isMouseLocked = false;
 	}
 #endregion
@@ -135,25 +132,28 @@ public class GameControllerScript : MonoBehaviour{
 	private void activateGame(){
 		hasGameStarted = true;
 		baldi.SetActive(true);
-		
-		entranceState(EntranceScript.wallState.lowerWall);
+		entrance.wallAction(EntranceScript.wallState.lowerWall);
 	}
 	
 	private void activateFinaleMode(){
 		isGameFinale = true;
-		
-		entranceState(EntranceScript.wallState.raiseWall);
+		entrance.wallAction(EntranceScript.wallState.raiseWall);
 	}
 	
-	private void entranceState(EntranceScript.wallState currentWallState){
+	/*private void entranceState(EntranceScript.wallState currentWallState){
 		foreach (EntranceScript entrance in entrances){
 			entrance.wallAction(currentWallState);
 		}
-	}	
+	}*/	
 	
 	public void exitReached(){
 		exitsReached++;
 		RenderSettings.ambientLight = finaleColor;
+	}
+	
+	public void exitGame(){
+		Time.timeScale = 1f;
+		SceneManager.LoadScene(exitGameScene);
 	}
 #endregion
 
@@ -192,21 +192,22 @@ public class GameControllerScript : MonoBehaviour{
 #endregion
 	
 #region NotebookFunctions
- 	private string updateBoxCount(){
-		// boxCounter.text = updateBoxCount;
-		
-		return $"{collectedBoxes} out of {maxBoxes} boxes";
+ 	private string updateBoxCount(){		
+		return $"{cText.ReadOutNum(collectedBoxes, true)} out of {cText.ReadOutNum(maxBoxes)} boxes.";
 	}
-	
+
 	private void bobUIBox(){
-		if (!playerScript.isMoving){
-			boxGPITransform.localPosition = Vector3.Lerp(boxGPITransform.localPosition, startPosition, Time.deltaTime * 8f); // larppppp
-			return;
+		float targetAmount = playerScript.isMoving ? 1f : 0f;
+		float wave = (fMath.Sine(bobTime) + 1f) * 0.5f;		
+		
+		bobAmount = Mathf.Lerp(bobAmount, targetAmount, Time.deltaTime * 8f);
+		
+		if (playerScript.isMoving){
+			bobTime += Time.deltaTime * bobSpeed;
 		}
-
-		float wave = (Mathf.Sin(Time.time * bobSpeed) + 1f) / 2f;
-
-		boxGPITransform.localPosition = Vector3.Lerp(startPosition, startPosition + bobOffset, wave);
+		
+		Vector3 targetPos = Vector3.Lerp(startPosition, startPosition + bobOffset, wave);
+		boxGPIGameObject.transform.localPosition = Vector3.Lerp(startPosition, targetPos, bobAmount);
 	}
 	
 	public void collectBox(){
@@ -215,15 +216,12 @@ public class GameControllerScript : MonoBehaviour{
 		}
 		
 		isHoldingBox = true;
-		soundHandler.playSound(grabBoxSound, 0);
-		updateBoxCount();
-		foreach (GameObject HUDobject in boxGPIGameObject){
-			HUDobject.SetActive(true);
-		}		
-		
 		if (playerScript.stamina < playerScript.maxStamina){
 			playerScript.stamina = Mathf.Min(playerScript.maxStamina, playerScript.stamina + (playerScript.maxStamina - playerScript.stamina) / 4f);
 		}
+		
+		soundHandler.playSound(grabBoxSound, 0);
+		boxGPIGameObject.SetActive(true);
 	}
 	
 	public void putBoxInPlace(){
@@ -231,16 +229,15 @@ public class GameControllerScript : MonoBehaviour{
 			return;
 		}
 		
-		isHoldingBox = false;		
-		soundHandler.playSound(dropBoxSound, 0);
+		collectedBoxes++;
 		boxCounter.text = updateBoxCount();
-		foreach (GameObject HUDobject in boxGPIGameObject){
-			HUDobject.SetActive(true);
-		}		
-		
+		isHoldingBox = false;
 		if (playerScript.stamina < playerScript.maxStamina){
 			playerScript.stamina = playerScript.maxStamina;
-		}
+		}		
+		
+		soundHandler.playSound(dropBoxSound, 0);		
+		boxGPIGameObject.SetActive(true);
 		
 		if(!hasGameStarted){
 			if(collectedBoxes > 1){
@@ -252,21 +249,6 @@ public class GameControllerScript : MonoBehaviour{
 				activateFinaleMode();
 			}
 		}
-	}
-#endregion
-	
-#region MiscFunctions
-	public void exitGame(){
-		Time.timeScale = 1f;
-		SceneManager.LoadScene(exitGameScene);
-	}
-	
-	public void getAngry(float value){ // are we deadass mystman12
-		if (!hasGameStarted){
-			activateGame();
-		}
-		
-		baldiScript.GetAngry(value);
 	}
 #endregion
 }
