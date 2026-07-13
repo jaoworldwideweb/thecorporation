@@ -108,7 +108,6 @@ namespace MathLibrary{
 		private const float c = -4f / (pi * pi);
 		private const float p = 0.225f;
 		
-		// what the fuck was i thinking. how does this work without bugs?
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float Sine(float startValue){
 			startValue %= 2f * pi;
@@ -117,6 +116,7 @@ namespace MathLibrary{
 			return p * (y * System.Math.Abs(y) - y) + y;
 		}
 		
+		// cos(x) = sin(x + pi/2)
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float Cosine(float startValue){
 			return Sine(startValue + 1.5707963267948966f);

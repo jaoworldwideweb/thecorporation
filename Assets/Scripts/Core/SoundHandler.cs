@@ -22,8 +22,7 @@ public class SoundHandler : MonoBehaviour {
 		soundQueues = new Queue<AudioClip>[soundEffects.Length];
 		isPlaying = new bool[soundEffects.Length];
 
-		for (int i = 0; i < soundEffects.Length; i++)
-		{
+		for (int i = 0; i < soundEffects.Length; i++){
 			soundQueues[i] = new Queue<AudioClip>();
 			isPlaying[i] = false;
 		}
@@ -83,12 +82,10 @@ public class SoundHandler : MonoBehaviour {
 #region MusicFunctions
 	private bool isSongReady(AudioClip sound, int outputSlot){
 		if (sound == null){
-			Debug.LogError("SoundHandler: No song was specified. Did you write the song's name incorrectly?");
 			return false;
 		}
 
 		if (outputSlot < 0){
-			Debug.LogError("SoundHandler: The output slot is invalid. Did you provide a negative slot number?");
 			return false;
 		}
 

@@ -2,7 +2,7 @@ using System;
 using MathLibrary;
 
 namespace TextLibrary{
-	public static class cText{
+	public static class TextLib{
 		// part of the percentage stuff
 		public static string PrintPercentage(float current, float max, string prefix = "out of"){
 			return $"{cMath.CalculatePercentage(current, max)} {prefix} {max}%";

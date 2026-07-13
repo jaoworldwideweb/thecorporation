@@ -395,7 +395,7 @@ GameObject:
   - component: {fileID: 5542704163682014877}
   - component: {fileID: 294459858706551254}
   - component: {fileID: 7948333735762155444}
-  - component: {fileID: 3614952170261716249}
+  - component: {fileID: 966993335817652933}
   m_Layer: 0
   m_Name: Box
   m_TagString: Notebook
@@ -440,7 +440,7 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &3614952170261716249
+--- !u!114 &966993335817652933
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -454,7 +454,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameController: {fileID: 0}
   playerTransform: {fileID: 0}
-  boxColor: 0
+  boxData:
+    currentBoxColor: 0
+    boxCode: 0
 --- !u!1 &7271830777611795166
 GameObject:
   m_ObjectHideFlags: 0

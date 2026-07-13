@@ -4,6 +4,7 @@ using UnityEngine.UI;
 public class PlayerScript : MonoBehaviour{
 	[Header("Scripts")]
 	[SerializeField] private GameControllerScript gameController;
+	[SerializeField] private CharacterFaceManager faceManager;
 	
 	[Header("Footsteps")]
 	[SerializeField] private AudioSource footstepSource;
@@ -66,20 +67,20 @@ public class PlayerScript : MonoBehaviour{
 	
 	private void Update(){
 		isRunning = Singleton<InputManager>.Instance.GetActionKey(InputAction.Run);
-		isMoving = getMovementInput().sqrMagnitude > 0f;
+		isMoving = GetMovementInput().sqrMagnitude > 0f;
 		
-		mouseMove();
-		playerMove();
-		healthCheck();
-		handleFootsteps();
-		staminaCheck();
+		MouseMove();
+		PlayerMove();
+		HealthCheck();
+		HandleFootsteps();
+		StaminaCheck();
 		
 		if (characterController.velocity.sqrMagnitude > 0.01f){
 			gameController.lockMouse();
 		}
 	}
 	
-	private void handleFootsteps(){
+	private void HandleFootsteps(){
 		if (isMoving){
 			footstepTimer -= Time.deltaTime;
 
@@ -94,14 +95,14 @@ public class PlayerScript : MonoBehaviour{
 		}
 	}
 	
-	private void mouseMove(){
+	private void MouseMove(){
 		float sensitivity = mouseSensitivity * 2f;
 		
 		mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
 		transform.Rotate(Vector3.up * mouseX);
 	}
 	
-	private Vector3 getMovementInput(){
+	private Vector3 GetMovementInput(){
 		Vector3 input = Vector3.zero;
 		
 		if (Singleton<InputManager>.Instance.GetActionKey(InputAction.MoveForward)){
@@ -120,8 +121,8 @@ public class PlayerScript : MonoBehaviour{
 		return input.normalized;
 	}
 		
-	private void playerMove(){
-		float inputMagnitude = Mathf.Clamp01(getMovementInput().magnitude);
+	private void PlayerMove(){
+		float inputMagnitude = Mathf.Clamp01(GetMovementInput().magnitude);
 		
 		if (stamina > 0.1f & isRunning){
 			playerSpeed = runSpeed;
@@ -136,8 +137,7 @@ public class PlayerScript : MonoBehaviour{
 			sensitivity = sensitivityActive ? inputMagnitude : 1f;
 		}
 		
-		// horizontal movement
-		Vector3 horizontalMove = getMovementInput() * playerSpeed * sensitivity;
+		Vector3 horizontalMove = GetMovementInput() * playerSpeed * sensitivity;
 		
 		/*
 		// gravity
@@ -154,7 +154,7 @@ public class PlayerScript : MonoBehaviour{
 		characterController.Move(moveDirection);
 	}
 	
-	private void staminaCheck(){
+	private void StaminaCheck(){
 		if(isMoving & isRunning && stamina > 0.1f){
 			stamina -= staminaRate * Time.deltaTime;
 		}
@@ -173,7 +173,7 @@ public class PlayerScript : MonoBehaviour{
 		}
 	}
 	
-	private void healthCheck(){
+	private void HealthCheck(){
 		float regenThreshold = maxHealthValue * 0.4f;
 		
 		if (!isMoving && !isRunning && healthValue < regenThreshold){
@@ -188,8 +188,14 @@ public class PlayerScript : MonoBehaviour{
 		}
 	}
 	
-	public void healthAction(float value){
-		healthValue += value;
+	public void GetHealth(float value){
+		healthValue += Mathf.Abs(value);
+		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
+	}
+	
+	public void TakeDamage(float value){
+		faceManager.TakeDamage(value);
+		healthValue -= value;
 		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
 	}
 	

@@ -3,10 +3,11 @@ using System;
 using System.Collections;
 using GeneralLibrary;
 
+[System.Serializable]
 public class BoxData{
-	public boxColor currentBoxColor = boxColor.Red;
-	public int boxCode = 0000;
-	public enum boxColor{
+	public Color currentBoxColor = Color.Red;
+	public int boxCode = 0;
+	public enum Color{
 		Red,
 		Green,
 		Blue,
@@ -17,62 +18,60 @@ public class BoxData{
 		LightGreen,
 		LightBlue,
 		LightOrange
-	}	
+	};
+	public enum DataType{
+		Color,
+		Code
+	};
+	
+	public string GetFormattedData(){
+		return $"{currentBoxColor.ToString().ToUpper()}-{boxCode}";
+	}
+	
+	public string GetRawData(DataType type){
+		switch (type){
+			case DataType.Color:
+				return currentBoxColor.ToString();
+
+			case DataType.Code:
+				return boxCode.ToString();
+
+			default:
+				return "nullpointer";
+		}
+	}
+	
+	public void ClearData(){
+		currentBoxColor = Color.Red;
+		boxCode = 0;
+	}
 }
 
 public class BoxScript : MonoBehaviour{
 #region Inspector
 	[Header("Main")]
 	[SerializeField] private GameControllerScript gameController;
-	[SerializeField] private Transform playerTransform;
-	[SerializeField] private BoxData currentBoxData;
+	[SerializeField] private BoxData boxData;
 #endregion
 
 #region MainFunctions
 	private void Start(){
-		if (currentBoxData == null){
-			currentBoxData = new BoxData();
+		if (boxData == null){
+			boxData = new BoxData();			
 		}
-
-		currentBoxData.currentBoxColor = cGeneral.RandomEnumValue<BoxData.boxColor>();
-		currentBoxData.boxCode = UnityEngine.Random.Range(1000, 9000);
+		
+		boxData.boxCode = UnityEngine.Random.Range(1000, 9000);
 	}
-	
-	private void Update(){
-		if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact)){
-			return;			
-		}
-		if (Time.timeScale == 0f){
+
+	public void Collect(){
+		if (gameController.isHoldingBox){
 			return;			
 		}
 		
-		Ray raycast	= Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-		RaycastHit raycastHit;
-
-		if (Physics.Raycast(raycast, out raycastHit)){
-			if (raycastHit.transform.CompareTag("Box")){
-				float distance = Vector3.Distance(playerTransform.position, raycastHit.transform.position);
-
-				if (distance > 10f){
-					return;					
-				}
-				if (gameController.isHoldingBox){
-					return;					
-				}
-				
-				
-				gameObject.SetActive(false);
-				gameController.collectBox();
-			}
-		}
+		gameController.currentBoxData.currentBoxColor = boxData.currentBoxColor;
+		gameController.currentBoxData.boxCode = boxData.boxCode;
+		gameController.CollectBox();
+		gameObject.SetActive(false);
 	}
-#endregion
-
-#region API
-	private void SendBoxData(){
-		if(gameController.isHoldingBox){
-			// add stuff here
-		}
-	}
-#endregion
 }
+#endregion
