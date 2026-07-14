@@ -61,7 +61,7 @@ public class SwingingDoorScript : MonoBehaviour{
 		}
 		
 		if(other.tag == "Player" && baldiScript.isActiveAndEnabled){
-			baldiScript.Hear(transform.position, 1f);
+			// baldiScript.Hear(transform.position, 1f);
 		}
 	}
 	

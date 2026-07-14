@@ -68,7 +68,7 @@ public class MainDoorScript : MonoBehaviour{
 			audioOutput.PlayOneShot(doorOpen, 1f);
 		}
 		if (baldiScript != null && baldiScript.isActiveAndEnabled){
-			baldiScript.Hear(transform.position, 1f);
+			baldiScript.Hear(transform.position, 1);
 		}
 		
 		Vector3 localPos = transform.InverseTransformPoint(other.transform.position);

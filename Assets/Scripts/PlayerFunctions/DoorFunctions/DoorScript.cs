@@ -40,7 +40,7 @@ public class DoorScript : MonoBehaviour
 			{
 				if (baldi.isActiveAndEnabled & silentOpens <= 0)
 				{
-					baldi.Hear(transform.position, 1f); //If the door isn't silent, Baldi hears the door with a priority of 1.
+					baldi.Hear(transform.position, 1); //If the door isn't silent, Baldi hears the door with a priority of 1.
 				}
 				OpenDoor();
 				if (silentOpens > 0) //If the door is silent

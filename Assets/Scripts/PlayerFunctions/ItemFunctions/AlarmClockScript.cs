@@ -29,7 +29,7 @@ public class AlarmClockScript : MonoBehaviour
 	private void Alarm()
 	{
 		rang = true;
-		if (baldi.isActiveAndEnabled) baldi.Hear(transform.position, 8f); //Baldi is told to go to this location, with a priority of 10(above most sounds)
+		if (baldi.isActiveAndEnabled) baldi.Hear(transform.position, 1); //Baldi is told to go to this location, with a priority of 10(above most sounds)
 		audioDevice.clip = ring;
 		audioDevice.loop = false; // Tells the audio not to loop
 		audioDevice.Play(); //Play the audio

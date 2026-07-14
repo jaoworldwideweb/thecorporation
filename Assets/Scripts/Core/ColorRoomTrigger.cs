@@ -83,6 +83,7 @@ public class ColorRoomTrigger : MonoBehaviour{
 			return;			
 		}
 		isPlayerInside = false;
+		progressSliderObject.SetActive(false);
 		ResetProgress();
 	}
 #endregion

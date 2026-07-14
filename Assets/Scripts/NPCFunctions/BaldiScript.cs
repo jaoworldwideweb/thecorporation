@@ -1,172 +1,207 @@
-﻿using UnityEngine;
-using UnityEngine.AI;
+﻿using System.Collections;
+using UnityEngine;
 
-public class BaldiScript : MonoBehaviour
-{
-	private void Start()
-	{
-		baldiAudio = GetComponent<AudioSource>(); //Get The Baldi Audio Source(Used mostly for the slap sound)
-		agent = GetComponent<NavMeshAgent>(); //Get the Nav Mesh Agent
-		timeToMove = baseTime; //Sets timeToMove to baseTime
-		Wander(); //Start wandering
-		if (PlayerPrefs.GetInt("Rumble") == 1)
-		{
-			rumble = true;
-		}
-	}
-	private void Update()
-	{
-		if (timeToMove > 0f) //If timeToMove is greater then 0, decrease it
-		{
-			timeToMove -= 1f * Time.deltaTime;
-		}
-		else
-		{
-			Move(); //Start moving
-		}
-		if (coolDown > 0f) //If coolDown is greater then 0, decrease it
-		{
-			coolDown -= 1f * Time.deltaTime;
-		}
-		if (baldiTempAnger > 0f) //Slowly decrease Baldi's temporary anger over time.
-		{
-			baldiTempAnger -= 0.02f * Time.deltaTime;
-		}
-		else
-		{
-			baldiTempAnger = 0f; //Cap its lowest value at 0
-		}
-		if (antiHearingTime > 0f) //Decrease antiHearingTime, then when it runs out stop the effects of the antiHearing tape
-		{
-			antiHearingTime -= Time.deltaTime;
-		}
-		else
-		{
-			antiHearing = false;
-		}
-		if (endless) //Only activate if the player is playing on endless mode
-		{
-			if (timeToAnger > 0f) //Decrease the timeToAnger
-			{
-				timeToAnger -= 1f * Time.deltaTime;
-			}
-			else
-			{
-				timeToAnger = angerFrequency; //Set timeToAnger to angerFrequency
-				GetAngry(angerRate); //Get angry based on angerRate
-				angerRate += angerRateRate; //Increase angerRate for next time
-			}
-		}
-	}
-	private void FixedUpdate()
-	{
-		if (moveFrames > 0f) //Move for a certain amount of frames, and then stop moving.(Ruler slapping)
-		{
-			moveFrames -= 1f;
-			agent.speed = speed;
-		}
-		else
-		{
-			agent.speed = 0f;
-		}
-		Vector3 direction = player.position - transform.position; 
-		RaycastHit raycastHit;
-		if (Physics.Raycast(transform.position + Vector3.up * 2f, direction, out raycastHit, float.PositiveInfinity, 769, QueryTriggerInteraction.Ignore) & raycastHit.transform.tag == "Player") //Create a raycast, if the raycast hits the player, Baldi can see the player
-		{
-			db = true;
-			TargetPlayer(); //Start attacking the player
-		}
-		else
-		{
-			db = false;
-		}
-	}
-	private void Wander()
-	{
-		wanderer.GetNewTarget(); //Get a new location
-		agent.SetDestination(wanderTarget.position); //Head towards the position of the wanderTarget object
-		coolDown = 1f; //Set the cooldown
-		currentPriority = 0f;
-	}
-	public void TargetPlayer()
-	{
-		agent.SetDestination(player.position); //Target the player
-		coolDown = 1f;
-		currentPriority = 0f;
-	}
-	private void Move()
-	{
-		if (transform.position == previous & coolDown < 0f) // If Baldi reached his destination, start wandering
-		{
-			Wander();
-		}
-		moveFrames = 10f;
-		timeToMove = baldiWait - baldiTempAnger;
-		previous = transform.position; // Set previous to Baldi's current location
-		baldiAudio.PlayOneShot(slap); //Play the slap sound
-		baldiAnimator.SetTrigger("slap"); // Play the slap animation
-		if (rumble)
-		{
-			float num = Vector3.Distance(transform.position, player.position);
-			if (num < vibrationDistance)
-			{
-				float motorLevel = 1f - num / vibrationDistance;
-			}
-		}
-	}
-	public void GetAngry(float value)
-	{
-		baldiAnger += value; // Increase Baldi's anger by the value provided
-		if (baldiAnger < 0.5f) //Cap Baldi anger at a minimum of 0.5
-		{
-			baldiAnger = 0.5f;
-		}
-		baldiWait = -3f * baldiAnger / (baldiAnger + 2f / baldiSpeedScale) + 3f; //Some formula I don't understand.
-	}
-	public void GetTempAngry(float value)
-	{
-		baldiTempAnger += value; //Increase Baldi's Temporary Anger
-	}
-	public void Hear(Vector3 soundLocation, float priority)
-	{
-		if (!antiHearing && priority >= currentPriority) //If anti-hearing is not active and the priority is greater then the priority of the current sound
-		{
-			agent.SetDestination(soundLocation); //Go to that sound
-			currentPriority = priority; //Set the current priority to the priority
-		}
-	}
-	public void ActivateAntiHearing(float t)
-	{
-		Wander(); //Start wandering
-		antiHearing = true; //Set the antihearing variable to true for other scripts
-		antiHearingTime = t; //Set the time the tape's effect on baldi will last
-	}
+public class BaldiScript : Character{
 	public bool db;
 	public float baseTime;
 	public float speed;
-	public float timeToMove;
 	public float baldiAnger;
 	public float baldiTempAnger;
 	public float baldiWait;
 	public float baldiSpeedScale;
+
 	private float moveFrames;
-	private float currentPriority;
+	private int currentPriority;
+
 	public bool antiHearing;
 	public float antiHearingTime;
+
 	public float vibrationDistance;
+
 	public float angerRate;
 	public float angerRateRate;
 	public float angerFrequency;
-	public float timeToAnger;
 	public bool endless;
+
 	public Transform player;
-	public Transform wanderTarget;
-	public AILocationSelectorScript wanderer;
+
 	private AudioSource baldiAudio;
+
 	public AudioClip slap;
 	public Animator baldiAnimator;
+
 	public float coolDown;
+
 	private Vector3 previous;
 	private bool rumble;
-	private NavMeshAgent agent;
+
+	private Coroutine slapRoutine;
+
+	protected override void Awake(){
+		base.Awake();
+		baldiAudio = GetComponent<AudioSource>();
+	}
+
+	private void Start(){
+		Wander();
+
+		slapRoutine = StartCoroutine(SlapRoutine(baseTime));
+
+		StartCoroutine(CooldownRoutine());
+		StartCoroutine(TempAngerRoutine());
+		StartCoroutine(AntiHearingRoutine());
+
+		if (endless){
+			StartCoroutine(EndlessRoutine());			
+		}
+	}
+
+	private void FixedUpdate(){
+		if (moveFrames > 0f){
+			moveFrames--;
+			agent.speed = speed;
+		}
+		else{
+			agent.speed = 0f;
+		}
+
+		Vector3 direction = player.position - transform.position;
+		RaycastHit hit;
+
+		if (Physics.Raycast(transform.position + Vector3.up * 2f, direction, out hit, Mathf.Infinity, 769,QueryTriggerInteraction.Ignore) && hit.transform.CompareTag("Player")){ // worst line of code of all time
+			db = true;
+			TargetPlayer();
+		}
+		else{
+			db = false;
+		}
+	}
+
+	private IEnumerator SlapRoutine(float delay){
+		while(true){
+			yield return new WaitForSeconds(delay);
+			Move();
+			delay = Mathf.Max(0.05f, baldiWait - baldiTempAnger);
+		}
+	}
+
+	private IEnumerator CooldownRoutine(){
+		while(true){
+			if (coolDown > 0f){
+				coolDown -= Time.deltaTime;				
+			}
+			yield return null;
+		}
+	}
+
+	private IEnumerator TempAngerRoutine(){
+		while(true){
+			if (baldiTempAnger > 0f){
+				baldiTempAnger = Mathf.Max(0f, baldiTempAnger - 0.02f * Time.deltaTime);				
+			}
+			yield return null;
+		}
+	}
+
+	private IEnumerator AntiHearingRoutine(){
+		while (true){
+			if (antiHearing){
+				antiHearingTime -= Time.deltaTime;
+
+				if (antiHearingTime <= 0f){
+					antiHearing = false;
+					antiHearingTime = 0f;
+				}
+			}
+			yield return null;
+		}
+	}
+
+	private IEnumerator EndlessRoutine(){
+		while(true){
+			yield return new WaitForSeconds(angerFrequency);
+			GetAngry(angerRate);
+			angerRate += angerRateRate;
+		}
+	}
+
+	private void Wander(){
+		StartRoutine(WanderRoutine());
+		
+		coolDown = 1f;
+		currentPriority = 0;
+	}
+
+	public void TargetPlayer()
+	{
+		Follow(player);
+
+		coolDown = 1f;
+		currentPriority = 0;
+	}
+
+	private void Move()
+	{
+		if (transform.position == previous && coolDown < 0f)
+		{
+			Wander();
+		}
+
+		moveFrames = 10f;
+		previous = transform.position;
+
+		baldiAudio.PlayOneShot(slap);
+
+		if (rumble)
+		{
+			float distance = Vector3.Distance(transform.position, player.position);
+
+			if (distance < vibrationDistance)
+			{
+				float motorLevel = 1f - distance / vibrationDistance;
+				// Use motorLevel if you have rumble support.
+			}
+		}
+	}
+
+	public void GetAngry(float value)
+	{
+		baldiAnger += value;
+
+		if (baldiAnger < 0.5f)
+			baldiAnger = 0.5f;
+
+		baldiWait = -3f * baldiAnger / (baldiAnger + 2f / baldiSpeedScale) + 3f;
+
+		if (slapRoutine != null)
+		{
+			StopCoroutine(slapRoutine);
+			slapRoutine = StartCoroutine(SlapRoutine(Mathf.Max(0.05f, baldiWait - baldiTempAnger)));
+		}
+	}
+
+	public void GetTempAngry(float value)
+	{
+		baldiTempAnger += value;
+
+		if (slapRoutine != null)
+		{
+			StopCoroutine(slapRoutine);
+			slapRoutine = StartCoroutine(SlapRoutine(Mathf.Max(0.05f, baldiWait - baldiTempAnger)));
+		}
+	}
+
+	public void Hear(Vector3 soundLocation, int priority){
+		if (!antiHearing && priority >= currentPriority)
+		{
+			MoveTo(soundLocation);
+			currentPriority = priority;
+		}
+	}
+
+	public void ActivateAntiHearing(float time){
+		Wander();
+		antiHearing = true;
+		antiHearingTime = time;
+	}
 }

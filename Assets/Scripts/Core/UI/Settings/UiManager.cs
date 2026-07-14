@@ -2,44 +2,42 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UiManager : MonoBehaviour
-{
-	private void Start()
-	{
-		int @int = PlayerPrefs.GetInt("UiSize");
-		int int2 = PlayerPrefs.GetInt("UiHeight");
-		if (@int == 1)
-		{
-			normScaler.referenceResolution = new Vector2(640f, 480f);
+public class UiManager : MonoBehaviour{
+	public CanvasScaler normScaler;
+	public RectTransform[] transforms;
+	
+	private void Start(){
+		int resolutionPreset = PlayerPrefs.GetInt("UiSize");
+		int verticalOffsetMode = PlayerPrefs.GetInt("UiHeight");
+		
+		Vector2[] resolutions = {
+			Vector2.zero,
+			new Vector2(640f, 480f),
+			new Vector2(800f, 600f),
+			new Vector2(900f, 720f),
+			new Vector2(1024f, 720f)
+		};
+
+		float offset = 0f;
+
+		switch (verticalOffsetMode){
+			case 1:
+				offset = Screen.height / 8f;
+				break;
+
+			case 2:
+				offset = Screen.height / 4f;
+				break;
 		}
-		else if (@int == 2)
-		{
-			normScaler.referenceResolution = new Vector2(800f, 600f);
+		
+		if (resolutionPreset >= 1 && resolutionPreset < resolutions.Length){
+			normScaler.referenceResolution = resolutions[resolutionPreset];
 		}
-		else if (@int == 3)
-		{
-			normScaler.referenceResolution = new Vector2(900f, 720f);
-		}
-		else if (@int == 4)
-		{
-			normScaler.referenceResolution = new Vector2(1024f, 720f);
-		}
-		if (int2 == 1)
-		{
-			foreach (RectTransform rectTransform in transforms)
-			{
-				rectTransform.position = new Vector3(rectTransform.position.x, rectTransform.position.y + (float)(Screen.height / 8), rectTransform.position.z);
-			}
-		}
-		else if (int2 == 2)
-		{
-			foreach (RectTransform rectTransform2 in transforms)
-			{
-				rectTransform2.position = new Vector3(rectTransform2.position.x, rectTransform2.position.y + (float)(Screen.height / 4), rectTransform2.position.z);
+		
+		if (offset != 0){
+			foreach (RectTransform rect in transforms){
+				rect.position += Vector3.up * offset;
 			}
 		}
 	}
-	public CanvasScaler normScaler;
-	public DpCanvasScaler dpiScaler;
-	public RectTransform[] transforms;
 }
