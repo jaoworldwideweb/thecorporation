@@ -1,8 +1,9 @@
-using System; 
+using UnityEngine;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace MathLibrary{
-	public static class cMath{
+	public static class CommonMath{
 	#region Main
 		public static bool IsValueNullOrZero(this float startValue){
 			return startValue == 0f;
@@ -35,7 +36,7 @@ namespace MathLibrary{
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float CalculateHypotnuse(float adjacentCathetus, float oppositeCathetus){
 			// h = √(c₁²+c₂²)
-			return fMath.SquareRoot(fMath.Square(adjacentCathetus) + fMath.Square(oppositeCathetus));
+			return HighMath.SquareRoot(HighMath.Square(adjacentCathetus) + HighMath.Square(oppositeCathetus));
 		}
 	#endregion
 	
@@ -43,17 +44,17 @@ namespace MathLibrary{
 		// it's cool that ease out functions are similar to eachother (well a few)
 		public static float EaseOutQuad(float startValue){
 			float t = 1f - startValue;
-			return 1f - fMath.Square(t);
+			return 1f - HighMath.Square(t);
 		}
 		
 		public static float EaseOutCubic(float startValue){
 			float t = 1f - startValue;
-			return 1f - fMath.Cube(t);
+			return 1f - HighMath.Cube(t);
 		}
 	#endregion
 	}
 	
-	public static class fMath{
+	public static class HighMath{
 	#region Main
 		// i use these a lot for my formulas :-0
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

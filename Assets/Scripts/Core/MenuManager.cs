@@ -32,7 +32,7 @@ public class EmployeeData{
 	public string GetFormattedData(){
 		return
 			$"Gender: {gender}\n" +
-			$"Date of birth: {cGeneral.GetDate(birthday)}\n" +
+			$"Date of birth: {Date.GetDate(birthday)}\n" +
 			$"Current Job: {job.name} ({job.id})\n" +
 			$"Workplace: {workplace}\n";
 	}
@@ -41,16 +41,13 @@ public class EmployeeData{
 
 public class MenuManager : MonoBehaviour{
 #region Inspector
-	[Header("UI - Main")]
 	[SerializeField] private GameObject forgroundObject;
 	[SerializeField] private Image foregroundImage;
 	[SerializeField] private Slider staminaSlider;
-	
-	[Header("UI - Story")]
 	[SerializeField] private TMP_Text[] employeeDescriptionOutput = new TMP_Text[2];
 	[SerializeField] private Image idPhoto;
 	
-	[Header("Story")]
+	[Header("Charcter")]
 	[SerializeField] private EmployeeData currentEmployee;
 	[SerializeField] private Date currentDate;
 	
@@ -79,6 +76,13 @@ public class MenuManager : MonoBehaviour{
 			PlayerPrefs.Save();
 		}
 		
+		// for vex since he got the old builds that did horrid screen size changes
+		if(!PlayerPrefs.HasKey("beta_HasNewResolutionBeenSet")){
+			Screen.SetResolution(1920, 1080, true);
+			PlayerPrefs.SetInt("beta_HasNewResolutionBeenSet", 1);
+			PlayerPrefs.Save();
+		}
+		
 		forgroundObject.SetActive(false);
 	}
 	
@@ -98,13 +102,9 @@ public class MenuManager : MonoBehaviour{
 	
 	private IEnumerator ILoadScene(string sceneName){
 		float waitTime = 2f;
-		
 		forgroundObject.SetActive(true);
-		
 		StartCoroutine(FadeImage(0f, 1f, waitTime, foregroundImage));
-		
 		yield return new WaitForSeconds(waitTime);
-		
 		SceneManager.LoadScene(sceneName);
 	}
 	
@@ -171,7 +171,7 @@ public class MenuManager : MonoBehaviour{
 
 		if (isActive){
 			mainObject.SetActive(true);
-
+			
 			foreach (GameObject child in children){
 				yield return new WaitForSeconds(UnityEngine.Random.Range(0.05f, 0.1f));
 				child.SetActive(true);
@@ -182,7 +182,7 @@ public class MenuManager : MonoBehaviour{
 				yield return new WaitForSeconds(UnityEngine.Random.Range(0.1f, 0.2f));
 				child.SetActive(false);
 			}
-
+			
 			mainObject.SetActive(false);
 		}
 	}	

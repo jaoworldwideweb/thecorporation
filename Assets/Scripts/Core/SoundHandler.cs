@@ -34,7 +34,7 @@ public class SoundHandler : MonoBehaviour {
 #endregion
 
 #region SoundFunctions
-	private bool isSoundReady(AudioClip sound, int outputSlot){
+	private bool IsSoundReady(AudioClip sound, int outputSlot){
 		if (sound == null){
 			return false;
 		}
@@ -45,27 +45,27 @@ public class SoundHandler : MonoBehaviour {
 		return true;
 	}
 	
-	public void playSound(AudioClip sound, int outputSlot = 0){
-		if(!isSoundReady(sound, outputSlot)){
+	public void PlaySound(AudioClip sound, int outputSlot = 0){
+		if(!IsSoundReady(sound, outputSlot)){
 			return;
 		}
 		
 		soundEffects[outputSlot].PlayOneShot(sound);	
 	}
 
-	public void playSoundQueue(AudioClip sound, int outputSlot = 0){
-		if(!isSoundReady(sound, outputSlot)){
+	public void PlaySoundOnQueue(AudioClip sound, int outputSlot = 0){
+		if(!IsSoundReady(sound, outputSlot)){
 			return;
 		}
 		
 		soundQueues[outputSlot].Enqueue(sound);	
 
 		if (!isPlaying[outputSlot]){
-			StartCoroutine(processQueue(outputSlot));
+			StartCoroutine(ProcessQueue(outputSlot));
 		}
 	}
 
-	private IEnumerator processQueue(int outputSlot){
+	private IEnumerator ProcessQueue(int outputSlot){
 		isPlaying[outputSlot] = true;
 
 		while (soundQueues[outputSlot].Count > 0){
@@ -80,7 +80,7 @@ public class SoundHandler : MonoBehaviour {
 #endregion
 
 #region MusicFunctions
-	private bool isSongReady(AudioClip sound, int outputSlot){
+	private bool IsSongReady(AudioClip sound, int outputSlot){
 		if (sound == null){
 			return false;
 		}
@@ -92,9 +92,8 @@ public class SoundHandler : MonoBehaviour {
 		return true;
 	}
 	
-	public void loopMusic(AudioClip song, int outputSlot = 0)
-	{
-		if(!isSongReady(song, outputSlot)){
+	public void LoopMusic(AudioClip song, int outputSlot = 0){
+		if(!IsSongReady(song, outputSlot)){
 			return;
 		}
 		
@@ -109,7 +108,7 @@ public class SoundHandler : MonoBehaviour {
 		music[outputSlot].Play();
 	}
 	
-	public void stopMusic(int outputSlot = 0){
+	public void StopMusic(int outputSlot = 0){
 		if(music[outputSlot].isPlaying){
 			music[outputSlot].loop = false;
 			music[outputSlot].Stop();

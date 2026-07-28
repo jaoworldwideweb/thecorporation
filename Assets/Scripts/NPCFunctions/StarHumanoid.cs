@@ -1,44 +1,177 @@
-using System;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
+using System;
+using System.Collections;
 
 public class StarHumanoid : Character{
-    [Header("References")]
-    [SerializeField] private Transform player;
-    private bool chasingPlayer;
+#region Inspector
+	[Header("Scripts")]
+	[SerializeField] private PlayerScript playerScript;
+	
+	[Header("Movement")]
+	[SerializeField] private float moveDelay;
+	[SerializeField] private float moveWaitTime;
+	[SerializeField] private float moveSpeed;
+	[SerializeField] private float baldiSpeedScale;
+	[SerializeField] private float coolDown;
+	[SerializeField] private float moveFrames;
+	[SerializeField] private Vector3 previous;
+	[SerializeField] private Transform player;
+	
+	[Header("AI")]
+	[SerializeField] private float anger;
+	[SerializeField] private float angerRate;
+	[SerializeField] private float angerRateRate;
+	[SerializeField] private float angerFrequency;
+	[SerializeField] private float temporaryAnger;
+	[SerializeField] private int currentPriority;
+	[SerializeField] private bool antiHearing;
+	[SerializeField] private float antiHearingTime;
+	
+	[Header("Audio")]
+	[SerializeField] private AudioSource audioOutput;
+	[SerializeField] private AudioClip moveSound;
+	
+	private Coroutine moveRoutine;
+#endregion
 
-    private void Start(){
-        ResumeWandering();
-    }
+#region MainFunctions
+	protected override void Awake(){
+		base.Awake();
+		audioOutput = GetComponent<AudioSource>();
+	}
 
-    private void FixedUpdate(){
-        Vector3 direction = player.position - transform.position;
+	private void Start(){
+		Wander();
 
-        if (Physics.Raycast(transform.position + Vector3.up * 2f, direction.normalized, out RaycastHit hit, Mathf.Infinity, 769, QueryTriggerInteraction.Ignore)){
-            if (hit.transform.CompareTag("Player")){
-                if (!chasingPlayer){
-                    chasingPlayer = true;
-                    TargetPlayer();
-                }
-                return;
-            }
-        }
-        if (chasingPlayer){
-            chasingPlayer = false;
-            ResumeWandering();
-        }
-    }
+		moveRoutine = StartCoroutine(SlapRoutine(moveDelay));
 
-    public void TargetPlayer(){
-        StartRoutine(FollowRoutine(player));
-    }
+		StartCoroutine(CooldownRoutine());
+		StartCoroutine(TempAngerRoutine());
+		StartCoroutine(AntiHearingRoutine());
+	}
 
-    public void ResumeWandering(){
-        StartRoutine(WanderRoutine());
-    }
+	private void FixedUpdate(){
+		if (moveFrames > 0f){
+			moveFrames--;
+			agent.speed = moveSpeed;
+		}
+		else{
+			agent.speed = 0f;
+		}
 
-    public void Hear(Vector3 soundPosition){
-        StartRoutine(MoveToRoutine(soundPosition));
-    }
+		Vector3 direction = player.position - transform.position;
+		RaycastHit hit;
+
+		if (Physics.Raycast(transform.position + Vector3.up * 2f, direction, out hit, Mathf.Infinity, 769,QueryTriggerInteraction.Ignore) && hit.transform.CompareTag("Player")){ // worst line of code of all time
+			TargetPlayer();
+		}
+	}
+#endregion
+
+	private IEnumerator SlapRoutine(float delay){
+		while(true){
+			yield return new WaitForSeconds(delay);
+			Move();
+			delay = Mathf.Max(0.05f, moveWaitTime - temporaryAnger);
+		}
+	}
+
+	private IEnumerator CooldownRoutine(){
+		while(true){
+			if (coolDown > 0f){
+				coolDown -= Time.deltaTime;				
+			}
+			yield return null;
+		}
+	}
+
+	private IEnumerator TempAngerRoutine(){
+		while(true){
+			if (temporaryAnger > 0f){
+				temporaryAnger = Mathf.Max(0f, temporaryAnger - 0.02f * Time.deltaTime);				
+			}
+			yield return null;
+		}
+	}
+
+	private IEnumerator AntiHearingRoutine(){
+		while (true){
+			if (antiHearing){
+				antiHearingTime -= Time.deltaTime;
+
+				if (antiHearingTime <= 0f){
+					antiHearing = false;
+					antiHearingTime = 0f;
+				}
+			}
+			yield return null;
+		}
+	}
+
+	private IEnumerator EndlessRoutine(){
+		while(true){
+			yield return new WaitForSeconds(angerFrequency);
+			GetAngry(angerRate);
+			angerRate += angerRateRate;
+		}
+	}
+
+	private void Wander(){
+		StartRoutine(WanderRoutine());
+		coolDown = 1f;
+		currentPriority = 0;
+	}
+
+	public void TargetPlayer(){
+		Follow(player);
+		coolDown = 1f;
+		currentPriority = 0;
+	}
+
+	private void Move(){
+		if (transform.position == previous && coolDown < 0f){
+			Wander();
+		}
+
+		moveFrames = 10f;
+		previous = transform.position;
+		audioOutput.PlayOneShot(moveSound);
+	}
+
+	public void GetAngry(float value){
+		anger += value;
+		if (anger < 0.5f){
+			anger = 0.5f;
+		}
+		
+		moveWaitTime = -3f * anger / (anger + 2f / baldiSpeedScale) + 3f;
+
+		if (moveRoutine != null){
+			StopCoroutine(moveRoutine);
+			moveRoutine = StartCoroutine(SlapRoutine(Mathf.Max(0.05f, moveWaitTime - temporaryAnger)));
+		}
+	}
+
+	public void GetTempAngry(float value){
+		temporaryAnger += value;
+
+		if (moveRoutine != null){
+			StopCoroutine(moveRoutine);
+			moveRoutine = StartCoroutine(SlapRoutine(Mathf.Max(0.05f, moveWaitTime - temporaryAnger)));
+		}
+	}
+
+	public void Hear(Vector3 soundLocation, int priority){
+		if (!antiHearing && priority >= currentPriority){
+			MoveTo(soundLocation);
+			currentPriority = priority;
+		}
+	}
+
+	public void ActivateAntiHearing(float time){
+		Wander();
+		antiHearing = true;
+		antiHearingTime = time;
+	}
 }

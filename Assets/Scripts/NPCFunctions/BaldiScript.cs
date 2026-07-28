@@ -67,7 +67,7 @@ public class BaldiScript : Character{
 
 		Vector3 direction = player.position - transform.position;
 		RaycastHit hit;
-
+		
 		if (Physics.Raycast(transform.position + Vector3.up * 2f, direction, out hit, Mathf.Infinity, 769,QueryTriggerInteraction.Ignore) && hit.transform.CompareTag("Player")){ // worst line of code of all time
 			db = true;
 			TargetPlayer();
@@ -127,23 +127,18 @@ public class BaldiScript : Character{
 
 	private void Wander(){
 		StartRoutine(WanderRoutine());
-		
 		coolDown = 1f;
 		currentPriority = 0;
 	}
 
-	public void TargetPlayer()
-	{
+	public void TargetPlayer(){
 		Follow(player);
-
 		coolDown = 1f;
 		currentPriority = 0;
 	}
 
-	private void Move()
-	{
-		if (transform.position == previous && coolDown < 0f)
-		{
+	private void Move(){
+		if (transform.position == previous && coolDown < 0f){
 			Wander();
 		}
 

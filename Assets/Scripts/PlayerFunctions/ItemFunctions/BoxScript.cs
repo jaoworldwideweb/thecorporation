@@ -5,8 +5,10 @@ using GeneralLibrary;
 
 [System.Serializable]
 public class BoxData{
+#region Data
 	public Color currentBoxColor = Color.Red;
 	public int boxCode = 0;
+	
 	public enum Color{
 		Red,
 		Green,
@@ -23,7 +25,9 @@ public class BoxData{
 		Color,
 		Code
 	};
-	
+#endregion
+
+#region Functions	
 	public string GetFormattedData(){
 		return $"{currentBoxColor.ToString().ToUpper()}-{boxCode}";
 	}
@@ -45,6 +49,7 @@ public class BoxData{
 		currentBoxColor = Color.Red;
 		boxCode = 0;
 	}
+#endregion
 }
 
 public class BoxScript : MonoBehaviour{

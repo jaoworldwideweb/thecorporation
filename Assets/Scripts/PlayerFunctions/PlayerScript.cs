@@ -1,24 +1,43 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+[System.Serializable]
+public class FootstepSound{
+	public SoundType soundType = SoundType.Concrete;
+	public PhysicMaterial material;
+	public AudioClip[] sounds;
+	
+	public enum SoundType{
+		Wood,
+		Vent,		
+		Metal,
+		MetalGrate,
+		Tile,
+		Concrete,
+		Water
+	}
+}
+
 public class PlayerScript : MonoBehaviour{
 	[Header("Scripts")]
 	[SerializeField] private GameControllerScript gameController;
+	[SerializeField] private SoundHandler soundHandler;
 	[SerializeField] private CharacterFaceManager faceManager;
 	
 	[Header("Footsteps")]
+	[SerializeField] private FootstepSound.SoundType currentFloorType = FootstepSound.SoundType.Concrete;
+	[SerializeField] private FootstepSound[] footstepSounds;
 	[SerializeField] private AudioSource footstepSource;
-	[SerializeField] private AudioClip footstepClip;
-	[SerializeField] private float footstepTimer;
 	[SerializeField] private float footstepDelayWalk;
 	[SerializeField] private float footstepDelayRun;
+	private float footstepTimer;
 	
 	[Header("Main")]
 	[SerializeField] private CharacterController characterController;
 	[SerializeField] private bool sensitivityActive;
 	[SerializeField] private float sensitivity;	
 	[SerializeField] private float mouseSensitivity = 100f;
-	private Vector3 moveDirection;	
+	private Vector3 moveDirection;
 	
 	[Header("Walk/Run")]
 	[SerializeField] private float playerSpeed;	
@@ -27,7 +46,8 @@ public class PlayerScript : MonoBehaviour{
 	[SerializeField] public bool isMoving;
 	private float mouseX;	
 	private float verticalVelocity;	
-	private const float gravity = -9.81f;	
+	// private const float gravity = -9.81f;
+	// why am i calculating gravity, the game doesn't need this
 	
 	[Header("Stamina")]
 	[SerializeField] public float stamina;	
@@ -41,7 +61,14 @@ public class PlayerScript : MonoBehaviour{
 	[SerializeField] public float maxHealthValue = 100f;
 	[SerializeField] private float healthRate = 5f;
 	[SerializeField] private Slider healthBar;
-	
+	public enum HealthAction{
+		Damage,
+		Regeneration,
+		FullRegeneration,
+		InstaKill
+	}
+
+#region MainFunctions
 	private void Start(){
 		if (PlayerPrefs.GetInt("AnalogMove") == 1){
 			sensitivityActive = true;
@@ -80,19 +107,61 @@ public class PlayerScript : MonoBehaviour{
 		}
 	}
 	
+	// todo: make this use tags instead of obj names
+	private void OnTriggerEnter(Collider other){
+		if (other.CompareTag("BadGuy") && !gameController.isDebugMode){
+			//gameController.GameOver();
+		}
+	}	
+#endregion
+
+#region MovmentFunctions
 	private void HandleFootsteps(){
 		if (isMoving){
 			footstepTimer -= Time.deltaTime;
-
 			if (footstepTimer <= 0f){
-				footstepSource.pitch = UnityEngine.Random.Range(0.9f, 1.1f);
-				footstepSource.PlayOneShot(footstepClip, 0.5f);
+				PlayFootstep();
 				footstepTimer = isRunning ? footstepDelayRun : footstepDelayWalk;
 			}
 		}
 		else{
 			footstepTimer = 0f;
 		}
+	}
+
+	private void PlayFootstep(){
+		FootstepSound footstepSound = GetFootstepSound(currentFloorType);
+		if (footstepSound == null || footstepSound.sounds.Length == 0){
+			return;
+		}
+		
+		soundHandler.PlaySound(footstepSound.sounds[UnityEngine.Random.Range(0, footstepSound.sounds.Length)], 2);
+	}
+	
+	private void UpdateFloorType(){
+		Ray ray = new Ray(transform.position + Vector3.up * 0.1f, Vector3.down);
+
+		if (Physics.Raycast(ray, out RaycastHit hit, 2f)){
+			PhysicMaterial material = hit.collider.sharedMaterial;
+
+			foreach (FootstepSound footstepSound in footstepSounds){
+				if (footstepSound.material == material){
+					currentFloorType = footstepSound.soundType;
+					return;
+				}
+			}
+		}
+
+		currentFloorType = FootstepSound.SoundType.Concrete;
+	}
+	
+	private FootstepSound GetFootstepSound(FootstepSound.SoundType soundType){
+		foreach (FootstepSound footstepSound in footstepSounds){
+			if (footstepSound.soundType == soundType){
+				return footstepSound;
+			}
+		}
+		return null;
 	}
 	
 	private void MouseMove(){
@@ -120,7 +189,8 @@ public class PlayerScript : MonoBehaviour{
 		
 		return input.normalized;
 	}
-		
+	
+	// this has some bugs for sure
 	private void PlayerMove(){
 		float inputMagnitude = Mathf.Clamp01(GetMovementInput().magnitude);
 		
@@ -139,8 +209,9 @@ public class PlayerScript : MonoBehaviour{
 		
 		Vector3 horizontalMove = GetMovementInput() * playerSpeed * sensitivity;
 		
+		// removed this part. pointless calculation.
+		
 		/*
-		// gravity
 		if (characterController.isGrounded && verticalVelocity < 0f){
 			verticalVelocity = -2f;
 		}
@@ -172,12 +243,18 @@ public class PlayerScript : MonoBehaviour{
 			staminaBar.value = Mathf.MoveTowards(staminaBar.value, target, Time.deltaTime * 5f);
 		}
 	}
-	
+#endregion
+
+#region HealthHandler
 	private void HealthCheck(){
 		float regenThreshold = maxHealthValue * 0.4f;
 		
 		if (!isMoving && !isRunning && healthValue < regenThreshold){
 			healthValue += (healthRate * 0.5f) * Time.deltaTime;
+		}
+		
+		if(healthValue > 1f){
+			
 		}
 		
 		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
@@ -188,20 +265,57 @@ public class PlayerScript : MonoBehaviour{
 		}
 	}
 	
+	public void DoHealthAction(HealthAction action, float ammount){
+		float absoluteAmmount = Mathf.Abs(ammount);
+		float negativeAmmount = ammount * -1f;
+		
+		switch(action){
+			case HealthAction.Damage:
+				if(absoluteAmmount > healthValue){
+					// gameController.GameOver();
+					// canPlayerMove = true;
+					DebugConsole.SendLog("Started game over inside PlayerScript.");
+					return;
+				}
+				
+				SetHealth(negativeAmmount);
+				StartCoroutine(faceManager.TakeDamage(absoluteAmmount));
+				break;
+				
+			case HealthAction.Regeneration:
+				SetHealth(absoluteAmmount);
+				break;
+				
+				
+			case HealthAction.FullRegeneration:
+				SetHealth(maxHealthValue - healthValue);
+				break;
+		}
+	}
+	
+	private void SetHealth(float ammount){
+		healthValue += ammount; // no 'absoluteAmmount' correction here because a+-b = a-b 
+		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue) 
+	}
+	
+	public IEnumerator DoHealthRegeneration
+	
+	/*
 	public void GetHealth(float value){
 		healthValue += Mathf.Abs(value);
 		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
 	}
 	
 	public void TakeDamage(float value){
-		faceManager.TakeDamage(value);
-		healthValue -= value;
+		float absoluteOfValue = Mathf.Abs(value);
+		
+		faceManager.TakeDamage(absoluteOfValue);
+		healthValue -= absoluteOfValue;
 		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
 	}
 	
-	private void OnTriggerEnter(Collider other){
-		if (other.transform.name == "Baldi" && gameController != null && !gameController.isDebugMode){
-			gameController.isGameOver = true;
-		}
-	}
+	public void InstaKill(){
+		
+	}*/
+#endregion
 }

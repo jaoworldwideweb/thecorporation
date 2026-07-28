@@ -1,13 +1,62 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using GeneralLibrary;
 
+public class GameOverScript : MonoBehaviour{
+#region Inspector
+	[Header("Graphics")]
+	[SerializeField] private Sprite[] sprites;
+	[SerializeField] private Sprite rareSprite;
+	private Image image;	
+	
+	[Header("Values")]
+	[SerializeField] private float timeToScene = 5f;	
+	[SerializeField] private string sceneToLoad = "MainMenu";
+	private int randomValue = 0;
+	
+	[Header("Sounds")]
+	[SerializeField] private AudioClip[] music;
+	private SoundHandler soundHandler;
+#endregion
+	
+#region MainFunctions
+	private void Start(){
+		randomValue = UnityEngine.Random.Range(0, 999);
+		StartCoroutine(StartCutscene());
+		
+		soundHandler = GetComponent<SoundHandler>();
+		image = GetComponent<Image>();
+	}
+	
+	// for now it's going to be like this
+	private IEnumerator StartCutscene(){
+		if(randomValue == 1){
+			yield return new WaitForSeconds(timeToScene);
+			image.color = Color.red;
+			yield return new WaitForSeconds(timeToScene/2f);
+			Application.Quit();
+		}
+		else{
+			yield return new WaitForSeconds(timeToScene);
+			SceneManager.LoadScene(sceneToLoad);
+		}
+		
+		
+	}
+#endregion
+}
+
+// worst code of all time
+/*
 public class GameOverScript : MonoBehaviour
 {
 	private void Start()
 	{
-		image = GetComponent<Image>();
-		audioDevice = GetComponent<AudioSource>();
+
 		delay = 5f;
 		chance = Random.Range(1f, 99f);
 		if (chance < 98f)
@@ -52,3 +101,4 @@ public class GameOverScript : MonoBehaviour
 	private AudioSource audioDevice;
 	public string LoadScene;
 }
+*/

@@ -39,16 +39,14 @@ public class CharacterFaceManager : MonoBehaviour{
 		StartCoroutine(DefaultFaceHandler());
 	}
 	
-	private void Update(){
-		// null
-	}
+	private void Update(){}
 #endregion
 
 #region FaceHandler
 	private IEnumerator DefaultFaceHandler(){
 		while(true){
 			if(currentAction == Actions.LookingAround){
-				SetDirection(cGeneral.RandomEnumValue<Direction>());
+				SetDirection(General.RandomEnumValue<Direction>());
 
 				int faceIndex = Mathf.Max(GetFaceIndex() - 1, 1);
 				yield return new WaitForSeconds(character.lookingFrequency / faceIndex);

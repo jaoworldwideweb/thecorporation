@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.AI;
 
 public abstract class Character : MonoBehaviour{
+	// i don't really like oop langs but classes are cool
+	
 #region Inspector
     [Header("Navigation")]
     [SerializeField] protected NavMeshAgent agent;

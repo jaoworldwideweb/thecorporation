@@ -5,11 +5,11 @@ namespace TextLibrary{
 	public static class TextLib{
 		// part of the percentage stuff
 		public static string PrintPercentage(float current, float max, string prefix = "out of"){
-			return $"{cMath.CalculatePercentage(current, max)} {prefix} {max}%";
+			return $"{CommonMath.CalculatePercentage(current, max)} {prefix} {max}%";
 		}
 		
 		public static string PrintPercentage(int current, int max, string prefix = "out of"){
-			return $"{cMath.CalculatePercentage(current, max)} {prefix} {max}%";
+			return $"{CommonMath.CalculatePercentage(current, max)} {prefix} {max}%";
 		}
 		
 		// regular stuff

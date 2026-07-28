@@ -29,9 +29,8 @@ public class CameraScript : MonoBehaviour{
 	
 	private void LateUpdate(){
 		if (!gameController.isGameOver){
-
 			float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
-
+			
 			xRotation -= mouseY;
 			xRotation = Mathf.Clamp(xRotation, -90f, 25f);
 			
