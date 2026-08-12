@@ -1,14 +1,22 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-public class Billboard : MonoBehaviour
-{
-	private void Start()
-	{
-		m_Camera = Camera.main;
+public class Billboard : MonoBehaviour{
+	private Camera PointCamera;
+	
+	private void Start(){
+		PointCamera = Camera.main;
 	}
-	private void LateUpdate()
-	{
-		transform.LookAt(transform.position + m_Camera.transform.rotation * Vector3.forward); // Look towards the player
+
+	private void LateUpdate(){
+		if (PointCamera == null){
+			return;
+		}
+		
+		Vector3 lookDirection = PointCamera.transform.forward;
+		lookDirection.y = 0f;
+		lookDirection.Normalize();
+
+		transform.rotation = Quaternion.LookRotation(lookDirection);
 	}
-	private Camera m_Camera;
 }

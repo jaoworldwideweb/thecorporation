@@ -9,25 +9,25 @@ public class StarHumanoid : Character{
 	[SerializeField] private PlayerScript playerScript;
 	
 	[Header("Movement")]
-	[SerializeField] private float moveDelay;
-	[SerializeField] private float moveWaitTime;
-	[SerializeField] private float moveSpeed;
-	[SerializeField] private float baldiSpeedScale;
-	[SerializeField] private float coolDown;
-	[SerializeField] private float moveFrames;
+	[SerializeField] private float moveDelay = 3f;
+	[SerializeField] private float moveWaitTime = 3f;
+	[SerializeField] private float moveSpeed = 75f;
+	[SerializeField] private float speedScale = 0.65f;
+	[SerializeField] private float coolDown = 0f;
+	[SerializeField] private float moveFrames = 10f;
 	[SerializeField] private Vector3 previous;
 	[SerializeField] private Transform player;
-	
+
 	[Header("AI")]
-	[SerializeField] private float anger;
-	[SerializeField] private float angerRate;
-	[SerializeField] private float angerRateRate;
-	[SerializeField] private float angerFrequency;
-	[SerializeField] private float temporaryAnger;
-	[SerializeField] private int currentPriority;
-	[SerializeField] private bool antiHearing;
-	[SerializeField] private float antiHearingTime;
-	
+	[SerializeField] private float anger = 0f;
+	[SerializeField] private float angerRate = 0.01f;
+	[SerializeField] private float angerRateRate = 0.00025f;
+	[SerializeField] private float angerFrequency = 1f;
+	[SerializeField] private float temporaryAnger = 0f;
+	[SerializeField] private int currentPriority = 0;
+	[SerializeField] private bool antiHearing = false;
+	[SerializeField] private float antiHearingTime = 0f;
+
 	[Header("Audio")]
 	[SerializeField] private AudioSource audioOutput;
 	[SerializeField] private AudioClip moveSound;
@@ -145,7 +145,7 @@ public class StarHumanoid : Character{
 			anger = 0.5f;
 		}
 		
-		moveWaitTime = -3f * anger / (anger + 2f / baldiSpeedScale) + 3f;
+		moveWaitTime = -3f * anger / (anger + 2f / speedScale) + 3f;
 
 		if (moveRoutine != null){
 			StopCoroutine(moveRoutine);

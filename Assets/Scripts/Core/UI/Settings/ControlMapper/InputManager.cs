@@ -18,6 +18,8 @@ public enum InputAction{
 	LookBehind = 11,
 	Jump = 12,
 	PauseOrCancel = 13,
+	Tab = 14,
+	Q = 15,
 	Count
 }
 
@@ -233,6 +235,8 @@ public class InputManager : Singleton<InputManager>{
 			case InputAction.Interact: return new InputBinding(KeyCode.None, KeyCode.Mouse0);
 			case InputAction.UseItem: return new InputBinding(KeyCode.None, KeyCode.Mouse1);
 			case InputAction.BoxAction: return new InputBinding(KeyCode.E);
+			case InputAction.Tab: return new InputBinding(KeyCode.Tab);
+			case InputAction.Q: return new InputBinding(KeyCode.Q);
 			
 			case InputAction.Slot0: return new InputBinding(KeyCode.Alpha1);
 			case InputAction.Slot1: return new InputBinding(KeyCode.Alpha2);

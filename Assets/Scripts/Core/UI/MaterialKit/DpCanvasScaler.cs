@@ -2,6 +2,8 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+// worst code ever?
+
 namespace MaterialKit
 {
 	[RequireComponent(typeof(Canvas))]

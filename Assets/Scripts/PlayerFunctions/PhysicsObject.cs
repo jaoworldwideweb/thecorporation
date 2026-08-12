@@ -52,8 +52,8 @@ public abstract class PhysicsObject : MonoBehaviour{
 		objectRigidbody.isKinematic = false;
 		objectRigidbody.useGravity = false;
 		
-		objectRigidbody.linearDamping = 5f;
-		objectRigidbody.angularDamping = 5f;
+		objectRigidbody.drag = 5f;
+		objectRigidbody.angularDrag = 5f;
 	}
 
 	/// <summary>
@@ -94,8 +94,8 @@ public abstract class PhysicsObject : MonoBehaviour{
 			return;
 		}
 		
-		objectRigidbody.linearDamping = 0.05f;
-		objectRigidbody.angularDamping = 0.05f;
+		objectRigidbody.drag = 0.05f;
+		objectRigidbody.angularDrag = 0.05f;
 		
 		objectRigidbody.AddForce(direction.normalized * force, ForceMode.Impulse);
 	}
@@ -126,8 +126,8 @@ public abstract class PhysicsObject : MonoBehaviour{
 		objectRigidbody.isKinematic = !state;
 		
 		if (state){
-			objectRigidbody.linearDamping = 0.05f;
-			objectRigidbody.angularDamping = 0.05f;
+			objectRigidbody.drag = 0.05f;
+			objectRigidbody.angularDrag = 0.05f;
 		}
 	}
 #endregion

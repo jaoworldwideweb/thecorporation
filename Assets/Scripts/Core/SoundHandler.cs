@@ -92,12 +92,10 @@ public class SoundHandler : MonoBehaviour {
 		return true;
 	}
 	
-	public void LoopMusic(AudioClip song, int outputSlot = 0){
+	public void PlayMusic(AudioClip song, int outputSlot = 0){
 		if(!IsSongReady(song, outputSlot)){
 			return;
 		}
-		
-		music[outputSlot].loop = true;
 		
 		if(music[outputSlot].isPlaying){
 			music[outputSlot].Stop();
@@ -114,6 +112,10 @@ public class SoundHandler : MonoBehaviour {
 			music[outputSlot].Stop();
 			music[outputSlot].clip = null;
 		}
+	}
+	
+	public bool IsMusicPlaying(int outputSlot = 0){
+		return music[outputSlot].isPlaying;
 	}
 #endregion
 }

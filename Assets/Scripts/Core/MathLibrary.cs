@@ -13,8 +13,6 @@ namespace MathLibrary{
 			return startValue == 0;
 		}
 		
-		// calculate percentage fucntions
-		// p = (n / l) * p₁
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float CalculatePercentage(float current, float max){
 			if(max.IsValueNullOrZero()){
@@ -31,25 +29,60 @@ namespace MathLibrary{
 			return (int)System.Math.Round((float)current / max * 100f);
 		}
 		
-		// regular math stuff
-		// good for projectiles from heights and calculating distance
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float CalculateHypotnuse(float adjacentCathetus, float oppositeCathetus){
-			// h = √(c₁²+c₂²)
 			return HighMath.SquareRoot(HighMath.Square(adjacentCathetus) + HighMath.Square(oppositeCathetus));
 		}
 	#endregion
 	
 	#region UI
-		// it's cool that ease out functions are similar to eachother (well a few)
-		public static float EaseOutQuad(float startValue){
-			float t = 1f - startValue;
+		public delegate float EaseFunction(float t);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float Linear(float t){
+			return t;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float EaseOutQuad(float t){
+			t = 1f - t;
 			return 1f - HighMath.Square(t);
 		}
-		
-		public static float EaseOutCubic(float startValue){
-			float t = 1f - startValue;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float EaseInQuad(float t){
+			return HighMath.Square(t);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float EaseInOutQuad(float t){
+			return t < 0.5f ? 2f * HighMath.Square(t) : 1f - HighMath.ComplexAproximatePower(-2f * t + 2f, 2) * 0.5f;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float EaseOutCubic(float t){
+			t = 1f - t;
 			return 1f - HighMath.Cube(t);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float EaseInCubic(float t){
+			return HighMath.Cube(t);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float EaseOutExpo(float t){
+			return t >= 1f ? 1f : 1f - HighMath.ComplexAproximatePower(2f, (int)(-10f * t));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float EaseInExpo(float t){
+			return t <= 0f ? 0f : HighMath.ComplexAproximatePower(2f, (int)(10f * (t - 1f)));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float EaseInOutSine(float t){
+			return -(HighMath.Cosine(HighMath.pi * t) - 1f) * 0.5f;
 		}
 	#endregion
 	}
@@ -59,14 +92,65 @@ namespace MathLibrary{
 		// i use these a lot for my formulas :-0
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float Square(float startValue){
-			// x²
 			return startValue * startValue;
 		}
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float Cube(float startValue){
-			// x³
 			return startValue * startValue * startValue;
+		}
+		
+		private const float ln2 = 0.6931471805599453f;
+		private const float invLn2 = 1.4426950408889634f;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float Exponent(float x){
+			if (x == 0f){
+				return 1f;
+			}
+			
+			int whole = (int)x;
+			float frac = x - whole;
+			float fracExp = 1f + frac + Square(frac) * 0.5f + Cube(frac) * (1f / 6f) + CalculatePower(frac, 4) * (1f / 24f) + CalculatePower(frac, 5) * (1f / 120f); // wow
+
+			return fracExp * CalculatePower(2f, (int)(whole * invLn2));
+		}
+		
+		// this feels cursed for some reason... to badd!
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float Log(float x){
+			if (x <= 0f){
+				return float.NaN;
+			}
+			
+			float y = 0f;
+			
+			while (x > 2f){
+				x *= 0.5f;
+				y += ln2;
+			}
+			
+			while (x < 1f){
+				x *= 2f;
+				y -= ln2;
+			}
+			
+			float z = x - 1f;
+			float z2 = Square(z);
+			float z3 = z2 * z;
+			float z4 = z3 * z;
+			float z5 = z4 * z;
+
+			return y + z - z2 * 0.5f + z3 / 3f - z4 * 0.25f + z5 * 0.2f;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float ComplexAproximatePower(float value, float exponent){
+			if (value <= 0f){
+				return 0f;
+			}
+
+			return Exponent(exponent * Log(value));
 		}
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -92,7 +176,7 @@ namespace MathLibrary{
 			i = 0x5f3759df - (i >> 1);
 			
 			startValue = *(float*)&i;
-			startValue *= 1.5f - xHalf * startValue * startValue;
+			startValue *= 1.5f - xHalf * Square(startValue);
 			
 			return startValue;
 		}
@@ -104,7 +188,7 @@ namespace MathLibrary{
 	#endregion
 		
 	#region Trigonometry
-		private const float pi = 3.14159265358979323846f;
+		public const float pi = 3.14159265358979323846f;
 		private const float b = 4f / pi;
 		private const float c = -4f / (pi * pi);
 		private const float p = 0.225f;

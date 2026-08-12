@@ -61,7 +61,7 @@ public class MainDoorScript : MonoBehaviour{
 		if (isDoorLocked){
 			return;
 		}
-		if (!other.CompareTag("Player")){
+		if (!other.CompareTag("Player") && !other.CompareTag("BadGuy")){
 			return;
 		}
 		if (!isDoorOpen){
@@ -79,7 +79,7 @@ public class MainDoorScript : MonoBehaviour{
 		if (isDoorLocked || isDoorOpen){
 			return;
 		}
-		if (!other.CompareTag("Player")){
+		if (!other.CompareTag("Player") && !other.CompareTag("BadGuy")){
 			return;
 		}
 
@@ -90,7 +90,7 @@ public class MainDoorScript : MonoBehaviour{
 		if (isDoorLocked){
 			return;
 		}
-		if (!other.CompareTag("Player")){
+		if (!other.CompareTag("Player") && !other.CompareTag("BadGuy")){
 			return;
 		}
 
@@ -110,7 +110,6 @@ public class MainDoorScript : MonoBehaviour{
 #region DoorFunctions
 	public void doorAction(doorState performAction){
 		switch (performAction){
-
 			case doorState.openDoor:
 				openDoor(currentSide);
 				break;

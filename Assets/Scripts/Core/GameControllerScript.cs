@@ -1,5 +1,4 @@
-﻿```csharp id="q8x2vn"
-using System;
+﻿using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -8,6 +7,7 @@ using UnityEngine.SceneManagement;
 using TextLibrary;
 using MathLibrary;
 using GeneralLibrary;
+using GameLibrary;
 
 public class GameControllerScript : MonoBehaviour{
 	[Header("Scripts")]
@@ -15,6 +15,7 @@ public class GameControllerScript : MonoBehaviour{
 	
 	[Header("Player")]
 	public Transform playerTransform;
+	[SerializeField] private Camera[] sceneCameras;
 	[SerializeField] private Camera playerCamera;
 	
 	[Header("Baldi")]
@@ -28,11 +29,7 @@ public class GameControllerScript : MonoBehaviour{
 	public bool isDebugMode = false;
 	public bool isMouseLocked = true;
 	public bool isGamePaused = false;
-	public enum DeathType{
-		Skinwalker,
-		StarCreature,
-		Bleeding
-	};
+	public bool isInsideRoomTrigger = false;
 	
 	[Header("Graphical Player Interface")]
 	[SerializeField] private GameObject pauseMenu;
@@ -40,65 +37,61 @@ public class GameControllerScript : MonoBehaviour{
 	
 	[Header("Box")]
 	public BoxData currentBoxData;
-	[SerializeField] private TMP_Text boxCounter;
-	[SerializeField] private TMP_Text boxInfo;
-	[SerializeField] private GameObject boxGPIGameObject;
-	[SerializeField] private Vector3 startPosition;
-	[SerializeField] private Vector3 bobOffset;	
-	[SerializeField] private float bobSpeed;
-	[SerializeField] private float bobTime;
-	[SerializeField] private float bobAmount;
-	[SerializeField] private AudioClip grabBoxSound;
-	[SerializeField] private AudioClip dropBoxSound;
-	public bool isHoldingBox;	
-	public int collectedBoxes = 0;
-	public int maxBoxes = 9;
+	[SerializeField] private UITextObject boxInformation;
+	[SerializeField] private UITextObject roomInformation;
+	[SerializeField] private FullObject boxViewmodel;	
 	
-	[Header("Physics Object")]
-	[SerializeField] private float pickupDistance = 3f;
-	[SerializeField] private float holdDistance = 2f;
-	[SerializeField] private float moveForce = 20f;
-	[SerializeField] private float maxVelocity = 10f;
-	[SerializeField] private float throwForce = 10f;
-	private PhysicsObject heldObject;
-	private Rigidbody heldRigidbody;
+	[SerializeField] private TMP_Text boxCounter;
+					 public bool isHoldingBox = false;
+					 public int collectedBoxes = 0;
+					 public int maxBoxes = 9;
+	[SerializeField] private Vector3 boxViewmodelFinalPoint;
+	[SerializeField] private float boxViewmodelBobSpeed;
+					 private float boxViewmodelBobTime;
+					 private float boxViewmodelBobAmount;
+	[HideInInspector] public BoxColor roomColor = BoxColor.Red;
+	
+	[Header("Game Over")]
+	[SerializeField] private Image gameOverRender;
+	[SerializeField] private Creature[] creatures;
 	
 	[Header("Exit")]
-	public int exitsReached;
+	[HideInInspector] public int exitsReached;
 	[SerializeField] private EntranceScript entrance;
 	
 	[Header("Scene Management")]
-	[SerializeField] private Material gameOverSkybox;
-	[SerializeField] private Color finaleColor;
 	[SerializeField] private string exitGameScene;
 	[SerializeField] private string gameOverScene;
 	
 	[Header("Audio")]
-	[SerializeField] private SoundHandler soundHandler; 
+	[SerializeField] private SoundHandler soundHandler;
 	[SerializeField] private AudioClip[] musicTracks;
+	[SerializeField] private AudioClip grabBoxSound;
+	[SerializeField] private AudioClip dropBoxSound;
+	private AudioClip lastMusicTrack;
 	
 #region MainFunctions
 	private void Start(){
-		lockMouse();
+		LockMouse();
 		currentBoxData.ClearData();
-		// DebugConsole.StartConsole();
+		
 		boxCounter.text = UpdateBoxCount();
-		startPosition = boxGPIGameObject.transform.localPosition;
-		boxGPIGameObject.SetActive(false);
-		soundHandler.LoopMusic(musicTracks[UnityEngine.Random.Range(0, musicTracks.Length)], 0);
+		boxViewmodel.obj.SetActive(false);
+		boxViewmodel.SetOldTransform();
+		boxInformation.SetOldTransform();
+		
+		PlayRandomMusic();
 	}
 	
 	private void Update(){
-		// pause switch
-		if (Singleton<InputManager>.Instance.GetActionKeyDown(InputAction.PauseOrCancel) && !isGameOver){
-			if (!isGamePaused){
-				PauseGame();
-			}
-			else{
-				UnpauseGame();
-			}
+		General.DoActionFromInput(PauseSwitch, InputAction.PauseOrCancel);
+		UIObjectToggle(boxInformation, InputAction.Tab, MoveBoxInformation);
+		UIObjectToggle(roomInformation, InputAction.Q, MoveRoomInformation);	
+		
+		if (!soundHandler.IsMusicPlaying()){
+			PlayRandomMusic();
 		}
-
+		
 		if (!isGamePaused & Time.timeScale != 1f){
 			Time.timeScale = 1f;
 		}
@@ -108,31 +101,52 @@ public class GameControllerScript : MonoBehaviour{
 			}
 		}
 		
-		if(isGamePaused){
+		if(isGamePaused || isGameOver){
 			return;
 		}
 		
 		BobBox();
 		BoxObjectHandler();
-		ObjectPickup();
 	}
 #endregion
 
-#region MouseFunction
-	public void lockMouse(){
-		Actions.LockCursor();
+#region ControlFunctions
+	public void LockMouse(){
+		General.LockCursor();
 		isMouseLocked = true;
 	}
 	
-	public void unlockMouse(){
-		Actions.UnlockCursor();
+	public void UnlockMouse(){
+		General.UnlockCursor();
 		isMouseLocked = false;
+	}
+	
+	private void PauseSwitch(){
+		if(isGamePaused){
+			UnpauseGame();
+		}
+		else{
+			PauseGame();
+		}
+	}
+	
+	private void UIObjectToggle(UITextObject obj, InputAction action, Func<bool, float, IEnumerator> function){
+		if(!Singleton<InputManager>.Instance.GetActionKeyDown(action) || isGameOver || isGamePaused){
+			return;
+		}
+		
+		if(obj.isMoving){
+			return;			
+		}
+		
+		obj.isInState = !obj.isInState;
+		StartCoroutine(function(obj.isInState, 0.45f));
 	}
 #endregion
 	
 #region GameStateFunction
 	public void PauseGame(){
-		unlockMouse();
+		UnlockMouse();
 		Time.timeScale = 0f;
 		isGamePaused = true;
 		pauseMenu.SetActive(true);
@@ -142,7 +156,7 @@ public class GameControllerScript : MonoBehaviour{
 		Time.timeScale = 1f;
 		isGamePaused = false;
 		pauseMenu.SetActive(false);
-		lockMouse();
+		LockMouse();
 	}
 	
 	private void ActivateGame(){
@@ -156,194 +170,124 @@ public class GameControllerScript : MonoBehaviour{
 		entrance.wallAction(EntranceScript.wallState.raiseWall);
 	}
 	
-	public void ExitReached(){
-		exitsReached++;
-		RenderSettings.ambientLight = finaleColor;
-	}
+	public void ExitReached(){}
 	
 	public void ExitGame(){
-		Time.timeScale = 1f;
+		// Time.timeScale = 1f;
 		SceneManager.LoadScene(exitGameScene);
 	}
 	
+	// i be profin 😂👌
+	
+	private void PlayRandomMusic(){
+		AudioClip newTrack;
+		
+		do{
+			newTrack = musicTracks[UnityEngine.Random.Range(0, musicTracks.Length)];
+		}
+		while (musicTracks.Length > 1 && newTrack == lastMusicTrack);
+		
+		lastMusicTrack = newTrack;
+		soundHandler.PlayMusic(newTrack);
+	}
+#endregion
+
+#region Interactions
 	private void BoxObjectHandler(){
-		if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact)){
+		if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) && Time.timeScale == 0f){
 			return;			
 		}
 		
-		if (Time.timeScale == 0f){
-			return;
-		}
-
 		Ray ray = playerCamera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f));
 
 		if (!Physics.Raycast(ray, out RaycastHit hit)){
 			return;	
-		}	
-		
+		}
 		if (Vector3.Distance(playerTransform.position, hit.transform.position) > 10f){
 			return;			
 		}
 		
-		BoxScript box = hit.transform.GetComponent<BoxScript>();
+		BoxScript boxViewmodel = hit.transform.GetComponent<BoxScript>();
 		
-		if (box == null){
+		if (boxViewmodel == null){
 			return;			
 		}
 
-		box.Collect();
-	}
-#endregion
-
-#region PhysicsObjectww
-	private void ObjectPickup(){
-		if (heldObject != null){
-			HandleHeldObject();
-			
-			if (Singleton<InputManager>.Instance.GetActionKeyDown(InputAction.Interact)){
-				DropObject();
-			}
-			
-			return;
-		}
-		
-		if (Time.timeScale == 0f){
-			return;
-		}
-		if (!Singleton<InputManager>.Instance.GetActionKeyDown(InputAction.Interact)){
-			return;
-		}
-
-		Ray ray = playerCamera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f));
-
-		if (!Physics.Raycast(ray, out RaycastHit hit, pickupDistance)){
-			return;	
-		}
-		if (Vector3.Distance(playerTransform.position, hit.transform.position) > pickupDistance){
-			return;			
-		}
-		
-		PhysicsObject physicsObject = hit.collider.GetComponentInParent<PhysicsObject>();
-		
-		if (physicsObject == null){
-			return;
-		}
-		
-		Rigidbody rigidbody = physicsObject.GetRigidbody();
-		
-		if (rigidbody == null){
-			return;
-		}
-		
-		heldObject = physicsObject;
-		heldRigidbody = rigidbody;
-		
-		heldObject.OnObjectPickup();
-	}
-	
-	private void HandleHeldObject(){
-		if (heldObject == null){
-			return;
-		}
-		
-		if (heldRigidbody == null){
-			return;
-		}
-		
-		Vector3 targetPosition = playerCamera.transform.position + playerCamera.transform.forward * holdDistance;
-		
-		float objectWeight = heldObject.GetObjectWeight();
-		float weightMultiplier = 5f / objectWeight;
-		float finalForce = moveForce * weightMultiplier;
-		
-		heldObject.MoveObject(targetPosition, finalForce);
-		LimitHeldObjectVelocity();
-	}
-	
-	private void LimitHeldObjectVelocity(){
-		if (heldRigidbody == null){
-			return;
-		}
-		
-		if (heldRigidbody.linearVelocity.magnitude > maxVelocity){
-			heldRigidbody.linearVelocity = heldRigidbody.linearVelocity.normalized * maxVelocity;
-		}
-	}
-	
-	private void DropObject(){
-		if (heldObject == null){
-			return;
-		}
-		
-		heldObject.OnObjectDrop();
-		ClearHeldObject();
-	}
-	
-	private void ThrowObject(){
-		if (heldObject == null){
-			return;
-		}
-		
-		Vector3 throwDirection = playerCamera.transform.forward;
-		heldObject.ThrowObject(throwDirection, throwForce);
-		ClearHeldObject();
-	}
-	
-	private void ClearHeldObject(){
-		heldObject = null;
-		heldRigidbody = null;
+		boxViewmodel.Collect();
 	}
 #endregion
 	
 #region GameOverFunctions
-	public void GameOver(DeathType death){
-		isGameOver = true;
+	public void GameOver(CreatureType death){
+		TurnOffCameras();
+		soundHandler.StopMusic();
+		playerHUD.SetActive(false);
 		
-		switch(death){
-			case DeathType.StarCreature:
-				break;
-			
-			case DeathType.Skinwalker:
-				break;
-			
-			case DeathType.Bleeding:
-				break;
-		}
+		PlayerPrefs.SetString("DeathCause", death.ToString());
+		PlayerPrefs.Save();
+		
+		SceneManager.LoadSceneAsync(gameOverScene);
 	}
 	
-	private IEnumerator HideHUD(){
-		while (isGameOver){
-			playerHUD.SetActive(false);
-			yield return new WaitForEndOfFrame();
+	private void TurnOffCameras(){
+		foreach(Camera cam in sceneCameras){
+			cam.farClipPlane = 0f;
 		}
-		yield break;
 	}
 #endregion
 	
-#region NotebookFunctions
- 	private string UpdateBoxCount(){		
+#region BoxFunctions
+	// this block of code makes me go insane every day.
+ 	private string UpdateBoxCount(){
 		return $"{TextLib.ReadOutNum(collectedBoxes)} out of {TextLib.ReadOutNum(maxBoxes)} boxes.";
 	}
 	
-	private void PullUpBoxStats(){
-		/*boxInfo.text = 	$"{currentBoxData.GetFormattedData()}\n" +
-			$"Date of birth: {Date.GetDate(birthday)}\n"*/
-	}
-
-	private void BobBox(){
-		float targetAmount = playerScript.isMoving ? 1f : 0f;
-		float wave = (Mathf.Sin(bobTime) + 1f) * 0.5f;		
-		
-		bobAmount = Mathf.Lerp(bobAmount, targetAmount,Time.deltaTime * 8f);
-		
-		if (playerScript.isMoving){
-			bobTime += Time.deltaTime * bobSpeed;
+	public IEnumerator MoveRoomInformation(bool putInterfaceUp, float time = 0.45f){
+		if(!isInsideRoomTrigger){
+			yield break;
 		}
 		
-		Vector3 targetPos = Vector3.Lerp(startPosition, startPosition + bobOffset, wave);
-		boxGPIGameObject.transform.localPosition = Vector3.Lerp(startPosition, targetPos, bobAmount);
+		Vector2 target = putInterfaceUp ? new Vector2(-100, 50) : new Vector2(-100, -50);
+		roomInformation.objText.text = GetFormattedRoomName();
+		yield return roomInformation.MoveObject(target, CommonMath.EaseOutCubic, time);
 	}
 	
+	public IEnumerator MoveBoxInformation(bool putInterfaceUp, float time = 0.45f){
+		if(!isHoldingBox){
+			yield break;
+		}
+		
+		Vector2 target = putInterfaceUp ? new Vector2(-100, -100) : new Vector2(100, -100);
+		boxInformation.objText.text = currentBoxData.GetFormatted();
+		yield return boxInformation.MoveObject(target, CommonMath.EaseOutCubic, time);
+	}
+	
+	public string GetFormattedRoomName(){
+		return $"You are in the {roomColor.ToString().ToLower()} room";
+	}
+	
+	private void BobBox(){
+		float targetAmount = playerScript.isMoving ? 1f : 0f;
+		boxViewmodelBobAmount = Mathf.Lerp(boxViewmodelBobAmount, targetAmount, Time.deltaTime * 8f);
+
+		if(playerScript.isMoving){
+			boxViewmodelBobTime += Time.deltaTime * boxViewmodelBobSpeed;
+			
+			if(!boxViewmodel.isInState){
+				boxViewmodel.isInState = true;
+			}
+		}
+		else if(boxViewmodel.isInState){
+			boxViewmodel.isInState = false;
+			boxViewmodelBobTime = 0f;
+		}
+
+		float wave = (Mathf.Sin(boxViewmodelBobTime) + 1f) * 0.5f;
+
+		Vector3 bobTarget = Vector3.Lerp(boxViewmodel.oldTransform, boxViewmodelFinalPoint, wave);
+		boxViewmodel.obj.transform.localPosition = Vector3.Lerp(boxViewmodel.oldTransform, bobTarget, boxViewmodelBobAmount);
+	}
+		
 	public void CollectBox(){
 		if(isHoldingBox){
 			return;
@@ -351,12 +295,13 @@ public class GameControllerScript : MonoBehaviour{
 		
 		isHoldingBox = true;
 		
+		
 		if (playerScript.stamina < playerScript.maxStamina){
 			playerScript.stamina = Mathf.Min(playerScript.maxStamina,playerScript.stamina +(playerScript.maxStamina - playerScript.stamina) / 4f); // this feels stupid.
 		}
 		
 		soundHandler.PlaySound(grabBoxSound, 0);
-		boxGPIGameObject.SetActive(true);
+		boxViewmodel.obj.SetActive(true);
 	}
 	
 	public void PutBoxInPlace(){
@@ -369,12 +314,17 @@ public class GameControllerScript : MonoBehaviour{
 		isHoldingBox = false;
 		currentBoxData.ClearData();
 		
-		if (playerScript.stamina < playerScript.maxStamina){
+		if(playerScript.stamina < playerScript.maxStamina){
 			playerScript.stamina = playerScript.maxStamina;
-		}		
+		}
+		
+		if(boxInformation.isInState){
+			StartCoroutine(MoveBoxInformation(false));
+			boxInformation.objText.text = null;
+		}
 		
 		soundHandler.PlaySound(dropBoxSound, 0);		
-		boxGPIGameObject.SetActive(false);
+		boxViewmodel.obj.SetActive(false);
 		
 		if(!hasGameStarted){
 			if(collectedBoxes > 1){
@@ -389,4 +339,3 @@ public class GameControllerScript : MonoBehaviour{
 	}
 #endregion
 }
-```

@@ -2,55 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using GeneralLibrary;
-
-[System.Serializable]
-public class BoxData{
-#region Data
-	public Color currentBoxColor = Color.Red;
-	public int boxCode = 0;
-	
-	public enum Color{
-		Red,
-		Green,
-		Blue,
-		Yellow,
-		Orange,
-		
-		LightRed,
-		LightGreen,
-		LightBlue,
-		LightOrange
-	};
-	public enum DataType{
-		Color,
-		Code
-	};
-#endregion
-
-#region Functions	
-	public string GetFormattedData(){
-		return $"{currentBoxColor.ToString().ToUpper()}-{boxCode}";
-	}
-	
-	public string GetRawData(DataType type){
-		switch (type){
-			case DataType.Color:
-				return currentBoxColor.ToString();
-
-			case DataType.Code:
-				return boxCode.ToString();
-
-			default:
-				return "nullpointer";
-		}
-	}
-	
-	public void ClearData(){
-		currentBoxColor = Color.Red;
-		boxCode = 0;
-	}
-#endregion
-}
+using GameLibrary;
 
 public class BoxScript : MonoBehaviour{
 #region Inspector
@@ -73,8 +25,7 @@ public class BoxScript : MonoBehaviour{
 			return;			
 		}
 		
-		gameController.currentBoxData.currentBoxColor = boxData.currentBoxColor;
-		gameController.currentBoxData.boxCode = boxData.boxCode;
+		gameController.currentBoxData.Transfer(boxData);
 		gameController.CollectBox();
 		gameObject.SetActive(false);
 	}

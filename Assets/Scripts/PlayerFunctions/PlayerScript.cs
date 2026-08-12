@@ -1,31 +1,20 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-
-[System.Serializable]
-public class FootstepSound{
-	public SoundType soundType = SoundType.Concrete;
-	public PhysicMaterial material;
-	public AudioClip[] sounds;
-	
-	public enum SoundType{
-		Wood,
-		Vent,		
-		Metal,
-		MetalGrate,
-		Tile,
-		Concrete,
-		Water
-	}
-}
+using System;
+using System.Collections;
+using GeneralLibrary;
+using MathLibrary;
+using GameLibrary;
 
 public class PlayerScript : MonoBehaviour{
+#region Inspector
 	[Header("Scripts")]
 	[SerializeField] private GameControllerScript gameController;
 	[SerializeField] private SoundHandler soundHandler;
 	[SerializeField] private CharacterFaceManager faceManager;
 	
 	[Header("Footsteps")]
-	[SerializeField] private FootstepSound.SoundType currentFloorType = FootstepSound.SoundType.Concrete;
+	[SerializeField] private FootstepSoundType currentFloorType = FootstepSoundType.Concrete;
 	[SerializeField] private FootstepSound[] footstepSounds;
 	[SerializeField] private AudioSource footstepSource;
 	[SerializeField] private float footstepDelayWalk;
@@ -43,30 +32,27 @@ public class PlayerScript : MonoBehaviour{
 	[SerializeField] private float playerSpeed;	
 	[SerializeField] private float walkSpeed = 5f;
 	[SerializeField] private float runSpeed = 8f;
-	[SerializeField] public bool isMoving;
+	public bool isMoving;
+	public bool canPlayerMove = true;
 	private float mouseX;	
 	private float verticalVelocity;	
 	// private const float gravity = -9.81f;
 	// why am i calculating gravity, the game doesn't need this
 	
 	[Header("Stamina")]
-	[SerializeField] public float stamina;	
-	[SerializeField] public float maxStamina = 100f;
+	public float stamina;	
+	public float maxStamina = 100f;
 	[SerializeField] private float staminaRate = 20f;
-	[SerializeField] public bool isRunning;
+	public bool isRunning;
 	[SerializeField] private Slider staminaBar;
 	
 	[Header("Health")]
-	[SerializeField] public float healthValue;	
-	[SerializeField] public float maxHealthValue = 100f;
+	public float healthValue;
+	public float maxHealthValue = 100f;
 	[SerializeField] private float healthRate = 5f;
 	[SerializeField] private Slider healthBar;
-	public enum HealthAction{
-		Damage,
-		Regeneration,
-		FullRegeneration,
-		InstaKill
-	}
+	public bool isBleeding = false;
+#endregion
 
 #region MainFunctions
 	private void Start(){
@@ -96,30 +82,28 @@ public class PlayerScript : MonoBehaviour{
 		isRunning = Singleton<InputManager>.Instance.GetActionKey(InputAction.Run);
 		isMoving = GetMovementInput().sqrMagnitude > 0f;
 		
+		if (characterController.velocity.sqrMagnitude > 0.01f){
+			gameController.LockMouse();
+		}
+		
+		if(!canPlayerMove){
+			return;
+		}
+		
 		MouseMove();
 		PlayerMove();
 		HealthCheck();
 		HandleFootsteps();
 		StaminaCheck();
-		
-		if (characterController.velocity.sqrMagnitude > 0.01f){
-			gameController.lockMouse();
-		}
-	}
-	
-	// todo: make this use tags instead of obj names
-	private void OnTriggerEnter(Collider other){
-		if (other.CompareTag("BadGuy") && !gameController.isDebugMode){
-			//gameController.GameOver();
-		}
 	}	
 #endregion
 
 #region MovmentFunctions
 	private void HandleFootsteps(){
-		if (isMoving){
+		if (isMoving && !gameController.isGamePaused){
 			footstepTimer -= Time.deltaTime;
 			if (footstepTimer <= 0f){
+				UpdateFloorType();
 				PlayFootstep();
 				footstepTimer = isRunning ? footstepDelayRun : footstepDelayWalk;
 			}
@@ -135,7 +119,7 @@ public class PlayerScript : MonoBehaviour{
 			return;
 		}
 		
-		soundHandler.PlaySound(footstepSound.sounds[UnityEngine.Random.Range(0, footstepSound.sounds.Length)], 2);
+		footstepSource.PlayOneShot(footstepSound.sounds[UnityEngine.Random.Range(0, footstepSound.sounds.Length)]);
 	}
 	
 	private void UpdateFloorType(){
@@ -152,10 +136,10 @@ public class PlayerScript : MonoBehaviour{
 			}
 		}
 
-		currentFloorType = FootstepSound.SoundType.Concrete;
+		currentFloorType = FootstepSoundType.Concrete;
 	}
 	
-	private FootstepSound GetFootstepSound(FootstepSound.SoundType soundType){
+	private FootstepSound GetFootstepSound(FootstepSoundType soundType){
 		foreach (FootstepSound footstepSound in footstepSounds){
 			if (footstepSound.soundType == soundType){
 				return footstepSound;
@@ -226,7 +210,8 @@ public class PlayerScript : MonoBehaviour{
 	}
 	
 	private void StaminaCheck(){
-		if(isMoving & isRunning && stamina > 0.1f){
+		// oh i really hate this...
+		if(isMoving & isRunning && stamina > 10f){
 			stamina -= staminaRate * Time.deltaTime;
 		}
 		else if(stamina < maxStamina && isMoving || isRunning){
@@ -249,12 +234,8 @@ public class PlayerScript : MonoBehaviour{
 	private void HealthCheck(){
 		float regenThreshold = maxHealthValue * 0.4f;
 		
-		if (!isMoving && !isRunning && healthValue < regenThreshold){
+		if (!isMoving && !isRunning && healthValue < regenThreshold && !isBleeding){
 			healthValue += (healthRate * 0.5f) * Time.deltaTime;
-		}
-		
-		if(healthValue > 1f){
-			
 		}
 		
 		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
@@ -265,57 +246,66 @@ public class PlayerScript : MonoBehaviour{
 		}
 	}
 	
-	public void DoHealthAction(HealthAction action, float ammount){
+	public void DoHealthAction(HealthAction action, CreatureType hit, float ammount = 0f){
 		float absoluteAmmount = Mathf.Abs(ammount);
 		float negativeAmmount = ammount * -1f;
+		bool isAmmountNull = CommonMath.IsValueNullOrZero(ammount);
+		
+		if(isAmmountNull & hit != null & action == HealthAction.Damage){
+			DebugConsole.SendLog("Called a damage action without giving params.");
+			return;
+		}
 		
 		switch(action){
-			case HealthAction.Damage:
+			case HealthAction.Damage:			
 				if(absoluteAmmount > healthValue){
-					// gameController.GameOver();
-					// canPlayerMove = true;
+					Kill(hit);
 					DebugConsole.SendLog("Started game over inside PlayerScript.");
 					return;
 				}
 				
-				SetHealth(negativeAmmount);
+				AddToHealth(negativeAmmount);
 				StartCoroutine(faceManager.TakeDamage(absoluteAmmount));
+				if(hit == CreatureType.StarCreature){
+					return;
+				}			
 				break;
 				
 			case HealthAction.Regeneration:
-				SetHealth(absoluteAmmount);
-				break;
-				
-				
-			case HealthAction.FullRegeneration:
-				SetHealth(maxHealthValue - healthValue);
+				AddToHealth(absoluteAmmount);
 				break;
 		}
 	}
 	
-	private void SetHealth(float ammount){
-		healthValue += ammount; // no 'absoluteAmmount' correction here because a+-b = a-b 
-		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue) 
-	}
-	
-	public IEnumerator DoHealthRegeneration
-	
-	/*
-	public void GetHealth(float value){
-		healthValue += Mathf.Abs(value);
+	private void AddToHealth(float ammount){
+		healthValue += ammount;
 		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
 	}
 	
-	public void TakeDamage(float value){
-		float absoluteOfValue = Mathf.Abs(value);
-		
-		faceManager.TakeDamage(absoluteOfValue);
-		healthValue -= absoluteOfValue;
-		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
+	public void Kill(CreatureType hit){
+		canPlayerMove = false;
+		gameController.GameOver(hit);
 	}
 	
-	public void InstaKill(){
+	public void Bleed(float time){
+		StartCoroutine(ApplyBleeding(UnityEngine.Random.Range(1.5f, 6f)));
+	}
+	
+	private IEnumerator ApplyBleeding(float time){
+		if(isBleeding || gameController.isGameOver){
+			yield break;
+		}
 		
-	}*/
+		isBleeding = true;
+		float elapsedTime = time;
+		float damage = UnityEngine.Random.Range(1.5f, 4.5f);
+		
+		while(elapsedTime <= 0f){
+			healthValue -= isRunning ? damage * 2 * Time.deltaTime : damage * Time.deltaTime; // lol
+			elapsedTime -= Time.deltaTime;
+		}
+		
+		isBleeding = false;
+	}
 #endregion
 }

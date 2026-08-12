@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System;
 using System.Collections;
 using GeneralLibrary;
+using GameLibrary;
 
 public class ColorRoomTrigger : MonoBehaviour{
 #region Inspector
@@ -10,8 +11,8 @@ public class ColorRoomTrigger : MonoBehaviour{
 	[SerializeField] private GameControllerScript gameController;
 	[SerializeField] private Slider progressSlider;
 	[SerializeField] private GameObject progressSliderObject;
-	[SerializeField] private BoxData.Color roomColor = BoxData.Color.Red;
-
+	[SerializeField] private BoxColor roomColor = BoxColor.Red;
+	
 	[Header("Settings")]
 	[SerializeField] private float requiredHoldTime = 8f;
 	[SerializeField] private float maxSpeedMultiplier = 3f;
@@ -19,7 +20,7 @@ public class ColorRoomTrigger : MonoBehaviour{
 	private Collider triggerCollider;
 	private float triggerRadius;
 	private float holdProgress;
-	private bool isPlayerInside;
+	private bool isInsideRoomTrigger;
 #endregion	
 
 #region MainFunctions
@@ -34,7 +35,7 @@ public class ColorRoomTrigger : MonoBehaviour{
 	}
 	
 	private void Update(){
-		if (!isPlayerInside || !isBoxValid() || !gameController.isHoldingBox){
+		if (!isInsideRoomTrigger || !isBoxValid() || !gameController.isHoldingBox){
 			return;			
 		}
 		
@@ -74,17 +75,24 @@ public class ColorRoomTrigger : MonoBehaviour{
 	private void OnTriggerEnter(Collider other){
 		if (!other.CompareTag("Player")){
 			return;			
-		}
-		isPlayerInside = true;
+		}	
+		
+		gameController.roomColor = roomColor;
+		isInsideRoomTrigger = true;
+		gameController.isInsideRoomTrigger = true;
 	}
 
 	private void OnTriggerExit(Collider other){
 		if (!other.CompareTag("Player")){
-			return;			
+			return;	
 		}
-		isPlayerInside = false;
+		
+		isInsideRoomTrigger = false;
 		progressSliderObject.SetActive(false);
 		ResetProgress();
+		
+		StartCoroutine(gameController.MoveRoomInformation(false));
+		gameController.isInsideRoomTrigger = false;
 	}
 #endregion
 }

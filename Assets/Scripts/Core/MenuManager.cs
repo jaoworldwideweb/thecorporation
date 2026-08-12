@@ -1,43 +1,12 @@
-using TMPro;
-using GeneralLibrary;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using TMPro;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-
-#region Data
-[Serializable]
-public class Job{
-	public string name = "Worker";
-	public string id = "0000";
-}
-
-[Serializable]
-public class EmployeeData{
-	[Header("Main Information")]
-	public Sprite photo;
-	public string name = "Jayden Doe";
-	public string gender = "Unknown";
-	public Date birthday;
-	
-	[Header("Workplace Information")]
-	public string workplace = "A00";
-	public string id = "0000";
-	public Job job;
-	[TextArea(3, 10)]
-	public string description;
-	
-	public string GetFormattedData(){
-		return
-			$"Gender: {gender}\n" +
-			$"Date of birth: {Date.GetDate(birthday)}\n" +
-			$"Current Job: {job.name} ({job.id})\n" +
-			$"Workplace: {workplace}\n";
-	}
-}
-#endregion
+using GeneralLibrary;
+using GameLibrary;
 
 public class MenuManager : MonoBehaviour{
 #region Inspector

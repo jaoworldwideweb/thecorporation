@@ -1,13 +1,22 @@
 ﻿using UnityEngine;
 
 public class AILocationSelectorScript : MonoBehaviour{
-	public Transform[] newLocation = new Transform[29];
+	[SerializeField] private Transform[] hallways = new Transform[29];
+	[SerializeField] private Transform[] rooms = new Transform[29];
 	
 	public Vector3 GetNewTarget(){
-		return newLocation[UnityEngine.Random.Range(0, newLocation.Length)].position;
+		if (Random.value < 0.5f){
+			return GetNewTargetHallway();			
+		}
+		
+		return GetNewTargetRoom();
 	}
 	
 	public Vector3 GetNewTargetHallway(){
-		return newLocation[UnityEngine.Random.Range(0, 15)].position;
+		return hallways[UnityEngine.Random.Range(0, hallways.Length)].position;
+	}
+	
+	public Vector3 GetNewTargetRoom(){
+		return rooms[UnityEngine.Random.Range(0, rooms.Length)].position;
 	}
 }
