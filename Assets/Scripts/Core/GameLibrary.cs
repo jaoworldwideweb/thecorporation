@@ -34,6 +34,16 @@ namespace GameLibrary{
 		Water
 	}
 	
+	public enum SoundEffectsOutput{
+		PlayerSounds,
+		GameSounds
+	}
+	
+	public enum MusicOutput{
+		MainSong,
+		Ambience
+	}
+	
 	public enum BoxColor{
 		Red,
 		Green,

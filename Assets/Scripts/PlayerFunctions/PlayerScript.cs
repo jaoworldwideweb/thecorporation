@@ -60,7 +60,7 @@ public class PlayerScript : MonoBehaviour{
 			sensitivityActive = true;
 		}
 		
-		mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", mouseSensitivity) * 3.14f;		
+		mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", mouseSensitivity);		
 		
 		stamina = maxStamina;
 		healthValue = maxHealthValue;

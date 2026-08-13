@@ -8,6 +8,61 @@ using MathLibrary;
 using TMPro;
 
 namespace GeneralLibrary{
+	// kind of like a vector2 but with some other goodies!
+	[Serializable]
+	public struct dfloat{
+		public float a;
+		public float b;
+		private float memory;
+		
+		public dfloat(float a, float b){
+			this.a = a;
+			this.b = b;
+			this.memory = 0f;
+		}
+		
+		// calculations
+		public float Sum(){
+			return a + b;
+		}
+		
+		public float Subtract(bool isInverted = false){
+			return isInverted ? b - a : a - b;
+		}
+		
+		public float Divide(bool isInverted = false){
+			return isInverted ? b / a : a / b;
+		}
+		
+		public float Multiply(){
+			return a * b;
+		}
+		
+		// operations
+		public void Store(float push){
+			memory = push;
+		}
+		
+		public void Push(ref float point){
+			point = memory;
+		}
+		
+		public float Get(){
+			return memory;
+		}
+		
+		public void Clear(bool full = false){
+			a = 0f;
+			b = 0f;
+			
+			if(!full){
+				return;
+			}
+			
+			memory = 0f;
+		}
+	}
+	
 	[Serializable]
 	public class Date{
 		public static int year;
@@ -71,23 +126,42 @@ namespace GeneralLibrary{
 			
 			function();
 		}
+		
+		public static void IEnumeratorWrapper(IEnumerator function){
+			CoroutineRunner.Instance.StartCoroutine(function);
+		}
+		
+		public static IEnumerator VoidWrapper(Action action){
+			action();
+			yield return null;
+		}
+
+		public static IEnumerator VoidWrapper<T>(Action<T> action, T arg){
+			action(arg);
+			yield return null;
+		}
 	}
 	
 	public static class UserInterface{
-		public static IEnumerator FadeImage(float[] alpha, float duration, Image image){
+		// void wrapper
+		public static void FadeImage(Image image, dfloat alpha, float duration = 5f){
+			CoroutineRunner.Instance.StartCoroutine(IFadeImage(image, alpha, duration));
+		}
+		
+		public static IEnumerator IFadeImage(Image image, dfloat alpha, float duration){
 			float timeElapsed = 0f;
 			Color color = image.color;
 			
 			while (timeElapsed < duration){
 				timeElapsed += Time.deltaTime;
 				
-				color.a = Mathf.Lerp(alpha[0], alpha[1], timeElapsed / duration);
+				color.a = Mathf.Lerp(alpha.a, alpha.b, timeElapsed / duration);
 				image.color = color;
 				
 				yield return null;
 			}
 			
-			color.a = alpha[1];
+			color.a = alpha.b;
 			image.color = color;
 		}
 	

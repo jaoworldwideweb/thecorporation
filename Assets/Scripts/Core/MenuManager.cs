@@ -16,6 +16,11 @@ public class MenuManager : MonoBehaviour{
 	[SerializeField] private TMP_Text[] employeeDescriptionOutput = new TMP_Text[2];
 	[SerializeField] private Image idPhoto;
 	
+	[Header("Sound Handler")]
+	[SerializeField] private SoundHandler soundHandler;
+	[SerializeField] private AudioClip ambience;
+	[SerializeField] private AudioClip loadSound;
+	
 	[Header("Charcter")]
 	[SerializeField] private EmployeeData currentEmployee;
 	[SerializeField] private Date currentDate;
@@ -46,13 +51,18 @@ public class MenuManager : MonoBehaviour{
 		}
 		
 		// for vex since he got the old builds that did horrid screen size changes
-		if(!PlayerPrefs.HasKey("beta_HasNewResolutionBeenSet")){
+		/*if(!PlayerPrefs.HasKey("beta_HasNewResolutionBeenSet")){
 			Screen.SetResolution(1920, 1080, true);
 			PlayerPrefs.SetInt("beta_HasNewResolutionBeenSet", 1);
 			PlayerPrefs.Save();
-		}
+		}*/
 		
+		forgroundObject.SetActive(true);
+		UserInterface.FadeImage(foregroundImage, new dfloat(0f, 1f), 3f);
 		forgroundObject.SetActive(false);
+		
+		soundHandler.PlayMusic(ambience, MusicOutput.Ambience);
+		soundHandler.FadeMusic(3f, 0f, MusicOutput.Ambience);
 	}
 	
 	private void Update(){
@@ -71,9 +81,14 @@ public class MenuManager : MonoBehaviour{
 	
 	private IEnumerator ILoadScene(string sceneName){
 		float waitTime = 2f;
+		
+		soundHandler.FadeMusic(3f, 0f, MusicOutput.Ambience, true);
+		soundHandler.PlayMusic(loadSound, MusicOutput.MainSong);
+		
 		forgroundObject.SetActive(true);
-		StartCoroutine(FadeImage(0f, 1f, waitTime, foregroundImage));
-		yield return new WaitForSeconds(waitTime);
+		UserInterface.FadeImage(foregroundImage, new dfloat(0f, 1f), waitTime);
+		
+		yield return new WaitForSeconds(waitTime * 2f);
 		SceneManager.LoadScene(sceneName);
 	}
 	
@@ -102,23 +117,6 @@ public class MenuManager : MonoBehaviour{
 #endregion
 
 #region HelperFunctions
-	public IEnumerator FadeImage(float startAlpha, float endAlpha, float duration, Image image){
-		float elapsed = 0f;
-		Color color = image.color;
-		
-		while (elapsed < duration){
-			elapsed += Time.deltaTime;
-			
-			color.a = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
-			image.color = color;
-			
-			yield return null;
-		}
-		
-		color.a = endAlpha;
-		image.color = color;
-	}
-	
 	private IEnumerator ProcessQueue(){
 		isProcessingQueue = true;
 		

@@ -10,6 +10,7 @@ using GeneralLibrary;
 using GameLibrary;
 
 public class GameControllerScript : MonoBehaviour{
+#region Inspector
 	[Header("Scripts")]
 	[SerializeField] private PlayerScript playerScript;
 	
@@ -69,7 +70,8 @@ public class GameControllerScript : MonoBehaviour{
 	[SerializeField] private AudioClip grabBoxSound;
 	[SerializeField] private AudioClip dropBoxSound;
 	private AudioClip lastMusicTrack;
-	
+#endregion
+
 #region MainFunctions
 	private void Start(){
 		LockMouse();
@@ -80,7 +82,7 @@ public class GameControllerScript : MonoBehaviour{
 		boxViewmodel.SetOldTransform();
 		boxInformation.SetOldTransform();
 		
-		PlayRandomMusic();
+		soundHandler.PlayMusicFromList(musicTracks);
 	}
 	
 	private void Update(){
@@ -89,7 +91,7 @@ public class GameControllerScript : MonoBehaviour{
 		UIObjectToggle(roomInformation, InputAction.Q, MoveRoomInformation);	
 		
 		if (!soundHandler.IsMusicPlaying()){
-			PlayRandomMusic();
+			soundHandler.PlayMusicFromList(musicTracks);
 		}
 		
 		if (!isGamePaused & Time.timeScale != 1f){
@@ -176,25 +178,11 @@ public class GameControllerScript : MonoBehaviour{
 		// Time.timeScale = 1f;
 		SceneManager.LoadScene(exitGameScene);
 	}
-	
-	// i be profin 😂👌
-	
-	private void PlayRandomMusic(){
-		AudioClip newTrack;
-		
-		do{
-			newTrack = musicTracks[UnityEngine.Random.Range(0, musicTracks.Length)];
-		}
-		while (musicTracks.Length > 1 && newTrack == lastMusicTrack);
-		
-		lastMusicTrack = newTrack;
-		soundHandler.PlayMusic(newTrack);
-	}
 #endregion
 
 #region Interactions
 	private void BoxObjectHandler(){
-		if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) && Time.timeScale == 0f){
+		if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) || Time.timeScale == 0f){
 			return;			
 		}
 		

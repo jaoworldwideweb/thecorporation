@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scene/MainMenu.unity
     guid: dd164cd4a978a0a44b71ff3301b2a69e
   - enabled: 1
+    path: Assets/Scene/Warehouse.unity
+    guid: 48b3616303ecdfb49bb4f07bb1061c2d
+  - enabled: 0
     path: Assets/Scene/School.unity
     guid: 02778db063e5ee846980944a550e48a8
   - enabled: 0
@@ -17,10 +20,4 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scene/Results.unity
     guid: bf5819ac5bf6656459e5685cd4d86bd7
-  - enabled: 0
-    path: Assets/Scene/Secret.unity
-    guid: 0230bbea29ff6dd41bd41a0041bf7a68
-  - enabled: 0
-    path: Assets/Scene/TestRoom.unity
-    guid: 1bfa5adc7f589b44e8be78189891a1dd
   m_configObjects: {}
