@@ -96,13 +96,21 @@ MonoBehaviour:
   currentEmployee:
     photo: {fileID: 21300000, guid: c4e6e7c67c44482468764ec409456a45, type: 3}
     name: Frankie Lauterbur
-    gender: Not Registered
+    gender: Female
+    birthday:
+      year: 1951
+      month: 7
+      day: 13
     workplace: B24
     id: 0145
     job:
       name: Warehouse Caretaker
       id: 0220
     description: 
+  currentDate:
+    year: 1974
+    month: 5
+    day: 12
 --- !u!114 &174
 MonoBehaviour:
   m_ObjectHideFlags: 0

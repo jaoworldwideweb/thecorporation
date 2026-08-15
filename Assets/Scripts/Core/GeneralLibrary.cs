@@ -64,37 +64,40 @@ namespace GeneralLibrary{
 	}
 	
 	[Serializable]
-	public class Date{
-		public static int year;
-		public static int month;
-		public static int day;
+	public struct Date{
+		public int year;
+		public int month;
+		public int day;
 		
-		public static string GetDate(){
+		public Date(int year, int month, int day){
+			this.year = year;
+			this.month = month;
+			this.day = day;
+		}
+		
+		public string GetDate(){
 			return $"{month}/{day}/{year}";
 		}
 	}
 	
 	[Serializable]
-	public class TimeData{
-		public static int hours;
-		public static int seconds;
-		public static int milliseconds;
+	public struct TimeData{
+		public int hours;
+		public int seconds;
+		public int milliseconds;
 		
-		public enum GetType{
-			Simple,
-			Complex
+		public TimeData(int hours, int seconds, int milliseconds){
+			this.seconds = seconds;
+			this.hours = hours;
+			this.milliseconds = milliseconds;
 		}
 		
-		public static string GetTime(GetType type){
-			switch(type){
-				case GetType.Simple:
-					return $"{hours}:{seconds}";
-				
-				case GetType.Complex:
-					return $"{hours}:{seconds}:{milliseconds}";
-			}
-			
-			return "nullpointer";
+		public string Simple(){
+			return $"{hours}:{seconds}";
+		}
+		
+		public string Complex(){
+			return $"{hours}:{seconds}:{milliseconds}";
 		}
 	}
 	
@@ -126,20 +129,6 @@ namespace GeneralLibrary{
 			
 			function();
 		}
-		
-		public static void IEnumeratorWrapper(IEnumerator function){
-			CoroutineRunner.Instance.StartCoroutine(function);
-		}
-		
-		public static IEnumerator VoidWrapper(Action action){
-			action();
-			yield return null;
-		}
-
-		public static IEnumerator VoidWrapper<T>(Action<T> action, T arg){
-			action(arg);
-			yield return null;
-		}
 	}
 	
 	public static class UserInterface{
@@ -164,7 +153,25 @@ namespace GeneralLibrary{
 			color.a = alpha.b;
 			image.color = color;
 		}
-	
+		
+		// shit so long i was forced to snip it :sob:
+		public static IEnumerator IDither(GameObject previous, GameObject next,
+			Animator previousAnimator, Animator nextAnimator,
+			GraphicRaycaster previousRaycaster, GraphicRaycaster nextRaycaster, float duration = 1f){
+			next.SetActive(true);
+
+			previousAnimator.SetBool("Transition", false);
+			nextAnimator.SetBool("Transition", true);
+
+			previousRaycaster.enabled = false;
+			nextRaycaster.enabled = false;
+
+			yield return new WaitForSeconds(duration);
+
+			previous.SetActive(false);
+			nextRaycaster.enabled = true;
+		}
+		
 		public static IEnumerator MoveObject(RectTransform rectTransform, Vector2 targetPosition, CommonMath.EaseFunction easing, float time = 1f){
 			float timeElapsed = 0f;		
 			Vector2 startPos = rectTransform.anchoredPosition;

@@ -179,7 +179,7 @@ namespace GameLibrary{
 		public string GetFormattedData(){
 			return
 				$"Gender: {gender}\n" +
-				$"Date of birth: {Date.GetDate()}\n" +
+				$"Date of birth: {birthday.GetDate()}\n" +
 				$"Current Job: {job.name} ({job.id})\n" +
 				$"Workplace: {workplace}\n";
 		}

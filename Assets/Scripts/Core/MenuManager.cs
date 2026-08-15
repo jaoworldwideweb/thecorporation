@@ -57,12 +57,8 @@ public class MenuManager : MonoBehaviour{
 			PlayerPrefs.Save();
 		}*/
 		
-		forgroundObject.SetActive(true);
-		UserInterface.FadeImage(foregroundImage, new dfloat(0f, 1f), 3f);
-		forgroundObject.SetActive(false);
-		
 		soundHandler.PlayMusic(ambience, MusicOutput.Ambience);
-		soundHandler.FadeMusic(3f, 0f, MusicOutput.Ambience);
+		StartCoroutine(StartFadeIn());
 	}
 	
 	private void Update(){
@@ -70,7 +66,13 @@ public class MenuManager : MonoBehaviour{
 	}
 #endregion
 
-#region ButtonCalls
+#region MenuCalls
+	private IEnumerator StartFadeIn(){
+		forgroundObject.SetActive(true);
+		yield return UserInterface.IFadeImage(foregroundImage, new dfloat(1f, 0f), 3f);
+		forgroundObject.SetActive(false);
+	}
+	
 	public void SaveData(){
 		PlayerPrefs.Save();
 	}
