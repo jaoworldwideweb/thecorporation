@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System;
 using System.Collections;
 using GeneralLibrary;
 
 [System.Serializable]
-public class CharacterFace{
+public class CharacterFace
+{
 	public Sprite[] shocked = new Sprite[5];
 	public Sprite[] lookingForward = new Sprite[5];
 	public Sprite[] lookingLeft = new Sprite[5];
@@ -26,6 +26,7 @@ public class CharacterFaceManager : MonoBehaviour{
 		LookingAround,
 		TakeDamage
 	};
+
 	private enum Direction{
 		Forward,
 		Left,
@@ -39,68 +40,79 @@ public class CharacterFaceManager : MonoBehaviour{
 		StartCoroutine(DefaultFaceHandler());
 	}
 	
-	private void Update(){}
+	private void Update() { }
 #endregion
 
 #region FaceHandler
 	private IEnumerator DefaultFaceHandler(){
-		while(true){
-			if(currentAction == Actions.LookingAround){
-				SetDirection(General.RandomEnumValue<Direction>());
-
-				int faceIndex = Mathf.Max(GetFaceIndex() - 1, 1);
-				yield return new WaitForSeconds(character.lookingFrequency / faceIndex);
-			}
-			else{
+		while (true){
+			if (currentAction != Actions.LookingAround){
 				yield return null;
+				continue;
 			}
+			
+			SetDirection(General.RandomEnumValue<Direction>());
+			int faceIndex = Mathf.Max(GetFaceIndex() - 1, 1);
+			yield return new WaitForSeconds(character.lookingFrequency / faceIndex);
 		}
 	}
-
-	public IEnumerator TakeDamage(float pain){
-		Direction previousDirection = currentDirection;
-
-		if(currentAction != Actions.TakeDamage){
-			currentAction = Actions.TakeDamage;
+	
+	public void TakeDamage(float pain){
+		bool isReallyBad = pain >= 20f;
+		
+		if (!isReallyBad){
+			SetFace();
+			return;
 		}
-
-		SetDirection(Direction.Forward);
-
-		int faceIndex = GetFaceIndex();
-		faceCanvas.sprite = character.shocked[faceIndex];
-
+		
+		currentAction = Actions.TakeDamage;
+		SetFace(true);
+		StartCoroutine(TakeDamageRoutine(pain));
+	}
+	
+	private IEnumerator TakeDamageRoutine(float pain){
 		yield return new WaitForSeconds(CalculatePainTime(pain));
-
 		currentAction = Actions.LookingAround;
-		SetDirection(previousDirection);
+		SetFace();
 	}
-
+	
 	private void SetDirection(Direction dir){
 		currentDirection = dir;
-		faceCanvas.sprite = GetDirectionSprites(dir)[GetFaceIndex()];
+		
+		if (currentAction != Actions.TakeDamage){
+			SetFace();
+		}
 	}
+	
+	private void SetFace(bool shocked = false){
+		int faceIndex = GetFaceIndex();
 
-	private Sprite[] GetDirectionSprites(Direction dir){
-		switch(dir){
-			case Direction.Forward:
-				return character.lookingForward;
-				
-			case Direction.Left:
-				return character.lookingLeft;
-			
-			case Direction.Right:
-				return character.lookingRight;
+		if (shocked){
+			faceCanvas.sprite = character.shocked[faceIndex];
+			return;
 		}
 
-		return character.lookingForward;
-	}
+		switch (currentDirection){
+			case Direction.Forward:
+				faceCanvas.sprite = character.lookingForward[faceIndex];
+				break;
 
-	private float CalculatePainTime(float pain){
-		return Mathf.Clamp(Mathf.CeilToInt(pain / 20f), 2, 4);
-	}
+			case Direction.Left:
+				faceCanvas.sprite = character.lookingLeft[faceIndex];
+				break;
 
+			case Direction.Right:
+				faceCanvas.sprite = character.lookingRight[faceIndex];
+				break;
+		}
+	}
+	
 	private int GetFaceIndex(){
 		return Mathf.Clamp(4 - Mathf.FloorToInt(playerScript.healthValue / 20f), 0, 4);
 	}
-#endregion
+	
+	private float CalculatePainTime(float pain){
+		return Mathf.Clamp(Mathf.CeilToInt(pain / 20f), 2, 4);
+	}
+	#endregion
 }

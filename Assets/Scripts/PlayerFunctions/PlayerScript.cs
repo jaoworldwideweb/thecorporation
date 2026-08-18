@@ -265,7 +265,7 @@ public class PlayerScript : MonoBehaviour{
 				}
 				
 				AddToHealth(negativeAmmount);
-				StartCoroutine(faceManager.TakeDamage(absoluteAmmount));
+				faceManager.TakeDamage(absoluteAmmount);
 				if(hit == CreatureType.StarCreature){
 					return;
 				}			
