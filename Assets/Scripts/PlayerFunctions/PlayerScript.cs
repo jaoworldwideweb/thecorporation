@@ -248,7 +248,7 @@ public class PlayerScript : MonoBehaviour{
 	
 	public void DoHealthAction(HealthAction action, CreatureType hit, float ammount = 0f){
 		float absoluteAmmount = Mathf.Abs(ammount);
-		float negativeAmmount = ammount * -1f;
+		float negativeAmmount = ammount;
 		bool isAmmountNull = CommonMath.IsValueNullOrZero(ammount);
 		
 		if(isAmmountNull & hit != null & action == HealthAction.Damage){

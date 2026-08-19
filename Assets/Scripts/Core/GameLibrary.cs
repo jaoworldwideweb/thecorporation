@@ -5,6 +5,7 @@ using System.Collections;
 using TMPro;
 using MathLibrary;
 using GeneralLibrary;
+using System.Runtime.CompilerServices;
 
 namespace GameLibrary{
 #region Enumeration
@@ -53,6 +54,11 @@ namespace GameLibrary{
 		LightGreen,
 		LightBlue,
 		LightOrange
+	}
+	
+	public enum ItemType{
+		Nothing,
+		ChocolateBar
 	}
 #endregion
 
@@ -117,6 +123,47 @@ namespace GameLibrary{
 #endregion
 
 #region GameplayData
+	[Serializable]
+	public class Item{
+		public string name = "Nothing";
+		public ItemType type = ItemType.Nothing;
+		public Sprite sprite;
+		
+		public void Clear(){
+			name = "Nothing";
+			type = ItemType.Nothing;
+			sprite = null;
+		}
+		
+		public void Transfer(Item item){
+			Clear();
+			name = item.name;
+			type = item.type;
+			sprite = item.sprite;
+		}
+	}
+	
+	[Serializable]
+	public class ItemSlot{
+		public Image outputTexture;
+		public Item item;
+		
+		public void Set(Item item){
+			this.item.Transfer(item);
+			outputTexture.sprite = item.sprite;
+		}
+	}
+
+	public struct ItemDefinition{
+		public ItemType type;
+		public Action function;
+		
+		public ItemDefinition(ItemType type, Action function){
+			this.type = type;
+			this.function = function;
+		}
+	}
+	
 	[Serializable]
 	public class BoxData{
 		public BoxColor currentBoxColor = BoxColor.Red;

@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using MathLibrary;
 using TMPro;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GeneralLibrary{
 	// kind of like a vector2 but with some other goodies!
@@ -107,6 +108,10 @@ namespace GeneralLibrary{
 			return values[UnityEngine.Random.Range(0, values.Length)];
 		}
 		
+		public static T GetComponentFromObject<T>(string name) where T : Component{
+			return GameObject.Find(name).GetComponent<T>();
+		}
+		
 		public static string ToTitleCase(string text){
 			TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
 			return textInfo.ToTitleCase(text.ToLower());
@@ -120,6 +125,23 @@ namespace GeneralLibrary{
 		public static void UnlockCursor(){
 			Cursor.lockState = CursorLockMode.None;
 			Cursor.visible = true;
+		}
+		
+		public static void DoRaycastForObject(Action<RaycastHit> function, Camera camera, Transform playerTransform, int input = 0){
+			if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) || Time.timeScale == 0f){
+				return;
+			}
+			
+			Ray ray = camera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f));
+
+			if (!Physics.Raycast(ray, out RaycastHit hit)){
+				return;				
+			}
+			if (hit.distance > 10f){
+				return;				
+			}
+			
+			function(hit);
 		}
 		
 		public static void DoActionFromInput(Action function, InputAction action){
@@ -152,24 +174,6 @@ namespace GeneralLibrary{
 			
 			color.a = alpha.b;
 			image.color = color;
-		}
-		
-		// shit so long i was forced to snip it :sob:
-		public static IEnumerator IDither(GameObject previous, GameObject next,
-			Animator previousAnimator, Animator nextAnimator,
-			GraphicRaycaster previousRaycaster, GraphicRaycaster nextRaycaster, float duration = 1f){
-			next.SetActive(true);
-
-			previousAnimator.SetBool("Transition", false);
-			nextAnimator.SetBool("Transition", true);
-
-			previousRaycaster.enabled = false;
-			nextRaycaster.enabled = false;
-
-			yield return new WaitForSeconds(duration);
-
-			previous.SetActive(false);
-			nextRaycaster.enabled = true;
 		}
 		
 		public static IEnumerator MoveObject(RectTransform rectTransform, Vector2 targetPosition, CommonMath.EaseFunction easing, float time = 1f){
@@ -207,27 +211,12 @@ namespace GeneralLibrary{
 		}
 	}
 	
-	#if UNITY_STANDALONE_WIN || UNITY_EDITOR
 	public static class DebugConsole{
-		[DllImport("kernel32.dll")]
-		private static extern bool AllocConsole();
-		[DllImport("kernel32.dll")]
-		private static extern bool FreeConsole();
-		
-		public static void StartConsole(){
-			AllocConsole();
-		}
-		
-		public static void EndConsole(){
-			FreeConsole();
-		}
-		
 		public static void ThrowError(string text = "foobar"){
-			Console.WriteLine($"[{DateTime.UtcNow}] => I_Error: {text}");
+			Console.WriteLine($"[{DateTime.UtcNow}] => Error: {text}");
 		}
 		public static void SendLog(string text = "foobar"){
-			Console.WriteLine($"[{DateTime.UtcNow}] => I_Log: {text}");
+			Console.WriteLine($"[{DateTime.UtcNow}] => Log: {text}");
 		}
 	}
-	#endif
 }

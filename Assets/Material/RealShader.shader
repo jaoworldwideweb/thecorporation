@@ -1,4 +1,4 @@
-Shader "Custom/BuckshotEffect" {
+Shader "Custom/RealShader" {
 	Properties{
 		_MainTex ("Source", 2D) = "white" {}
 		_PixelSize ("Pixel Size", Range(1, 16)) = 3

@@ -88,12 +88,13 @@ public class GameControllerScript : MonoBehaviour{
 	private void Update(){
 		General.DoActionFromInput(PauseSwitch, InputAction.PauseOrCancel);
 		UIObjectToggle(boxInformation, InputAction.Tab, MoveBoxInformation);
-		UIObjectToggle(roomInformation, InputAction.Q, MoveRoomInformation);	
+		UIObjectToggle(roomInformation, InputAction.Q, MoveRoomInformation);
 		
 		if (!soundHandler.IsMusicPlaying()){
 			soundHandler.PlayMusicFromList(musicTracks);
 		}
 		
+		// some bs
 		if (!isGamePaused & Time.timeScale != 1f){
 			Time.timeScale = 1f;
 		}
@@ -108,7 +109,25 @@ public class GameControllerScript : MonoBehaviour{
 		}
 		
 		BobBox();
-		BoxObjectHandler();
+		
+		// raycast stuff
+		General.DoRaycastForObject(hit =>{
+			BoxScript boxViewmodel = hit.transform.GetComponent<BoxScript>();
+			
+			if (boxViewmodel == null){
+				return;			
+			}
+			boxViewmodel.Collect();			
+		}, playerCamera, playerTransform, 0);
+		
+		General.DoRaycastForObject(hit =>{
+			ItemObject item = hit.transform.GetComponent<ItemObject>();
+			
+			if (item == null){
+				return;		
+			}
+			item.Collect();	
+		}, playerCamera, playerTransform, 0);
 	}
 #endregion
 
@@ -182,7 +201,7 @@ public class GameControllerScript : MonoBehaviour{
 
 #region Interactions
 	private void BoxObjectHandler(){
-		if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) || Time.timeScale == 0f){
+		/*if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) || Time.timeScale == 0f){
 			return;			
 		}
 		
@@ -193,15 +212,18 @@ public class GameControllerScript : MonoBehaviour{
 		}
 		if (Vector3.Distance(playerTransform.position, hit.transform.position) > 10f){
 			return;			
-		}
+		}*/
 		
-		BoxScript boxViewmodel = hit.transform.GetComponent<BoxScript>();
+		General.DoRaycastForObject(hit =>{
+			BoxScript boxViewmodel = hit.transform.GetComponent<BoxScript>();
+			
+			if (boxViewmodel == null){
+				return;			
+			}
+			boxViewmodel.Collect();			
+		}, playerCamera, playerTransform, 0);
 		
-		if (boxViewmodel == null){
-			return;			
-		}
 
-		boxViewmodel.Collect();
 	}
 #endregion
 	
