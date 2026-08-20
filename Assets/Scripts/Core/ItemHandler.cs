@@ -6,7 +6,10 @@ using GameLibrary;
 
 public class ItemHandler : MonoBehaviour{
 #region Inspector
-	[Header("Graphical Player Interface")]
+	[Header("Scripts")]
+	public ItemFunctions itemFunctions;
+	
+	[Header("User Interface")]
 	[SerializeField] private TMP_Text itemText;	
 	[SerializeField] private RectTransform itemSelect;
 	[SerializeField] private Vector2[] itemSelectOffset = new Vector2[2];
@@ -19,21 +22,36 @@ public class ItemHandler : MonoBehaviour{
 	[SerializeField] private Item nothingItem;
 	[SerializeField] private ItemSlot[] itemSlots = new ItemSlot[2];
 	private int itemSelected;
-	
-	private static readonly ItemDefinition[] itemDefinitions = {
-		new ItemDefinition(ItemType.Nothing, null),
-		// new ItemDefinition(ItemType.ChocolateBar, itemFunctions.ChocolateBar),
-	};
+	private ItemDefinition[] itemDefinitions;
 #endregion
 
 #region MainFunctions
-	public void Start(){}
+	// wow
+	public void Awake(){
+		itemDefinitions = new ItemDefinition[]{
+			new ItemDefinition(ItemType.Nothing, null),
+			new ItemDefinition(ItemType.ChocolateBar, itemFunctions.ChocolateBar)
+		};
+	}
+	
+	public void Start(){
+		itemFunctions = General.GetComponentFromObject<ItemFunctions>("ItemHandler");
+		SetAllToNothing();
+		SetItemSelection(0);
+	}
+	
 	public void Update(){}
 #endregion
 	
 #region ItemManager
-	public void UseItem(ItemSlot slot){
-		Item item = slot.item;
+	public void SetAllToNothing(){
+		foreach(ItemSlot slot in itemSlots){
+			slot.Set(nothingItem);
+		}
+	}
+	
+	public void UseItem(){
+		Item item = itemSlots[itemSelected].item;
 		
 		if (item.type == ItemType.Nothing){
 			return;
@@ -46,11 +64,13 @@ public class ItemHandler : MonoBehaviour{
 				}
 				
 				definition.function();
+				ResetItem(item);
 				return;
 			}
 		}
 		
 		DebugConsole.ThrowError($"No function found for {item.type}.");
+		
 	}
 	
 	public void UpdateSelectionOffset(){
@@ -78,6 +98,11 @@ public class ItemHandler : MonoBehaviour{
 	public void DecreaseItemSelection(){
 		ChangeItemSelection(-1);
 	}
+	
+	public void SetItemSelection(int slot){
+		itemSelected = Mathf.Clamp(slot, 0, itemSlots.Length);
+		UpdateSelectionOffset();
+	}
 
 	public void CollectItem(Item newItem){
 		for (int slot = 0; slot < itemSlots.Length; slot++){
@@ -94,11 +119,9 @@ public class ItemHandler : MonoBehaviour{
 		GeneralUpdate();
 	}
 
-	public void ResetItem(int selection = 0){
-		int clampedSelection = Mathf.Clamp(selection, 0, itemSlots.Length);
-		
-		itemSlots[clampedSelection].item.Clear();
-		itemSlots[clampedSelection].item.Transfer(nothingItem);
+	public void ResetItem(Item item){
+		item.Clear();
+		item.Transfer(nothingItem);
 		GeneralUpdate();
 	}
 	
@@ -118,7 +141,7 @@ public class ItemHandler : MonoBehaviour{
 	}
 	
 	public void UpdateName(){
-		itemText.text = itemSlots[itemSelected].item.name;
+		itemText.text = $"{itemSlots[itemSelected].item.name.ToLower()}.";
 	}
 #endregion
 }

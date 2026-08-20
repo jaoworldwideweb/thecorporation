@@ -13,6 +13,7 @@ public class GameControllerScript : MonoBehaviour{
 #region Inspector
 	[Header("Scripts")]
 	[SerializeField] private PlayerScript playerScript;
+	[SerializeField] private ItemHandler itemHandler;
 	
 	[Header("Player")]
 	public Transform playerTransform;
@@ -32,7 +33,7 @@ public class GameControllerScript : MonoBehaviour{
 	public bool isGamePaused = false;
 	public bool isInsideRoomTrigger = false;
 	
-	[Header("Graphical Player Interface")]
+	[Header("User Interface")]
 	[SerializeField] private GameObject pauseMenu;
 	[SerializeField] private GameObject playerHUD;
 	
@@ -87,8 +88,6 @@ public class GameControllerScript : MonoBehaviour{
 	
 	private void Update(){
 		General.DoActionFromInput(PauseSwitch, InputAction.PauseOrCancel);
-		UIObjectToggle(boxInformation, InputAction.Tab, MoveBoxInformation);
-		UIObjectToggle(roomInformation, InputAction.Q, MoveRoomInformation);
 		
 		if (!soundHandler.IsMusicPlaying()){
 			soundHandler.PlayMusicFromList(musicTracks);
@@ -110,7 +109,14 @@ public class GameControllerScript : MonoBehaviour{
 		
 		BobBox();
 		
-		// raycast stuff
+		// input
+		General.DoActionFromInput(itemHandler.SetItemSelection, InputAction.Slot0, 0);
+		General.DoActionFromInput(itemHandler.SetItemSelection, InputAction.Slot1, 1);
+		General.DoActionFromInput(itemHandler.UseItem, InputAction.UseItem);
+		UIObjectToggle(boxInformation, InputAction.Tab, MoveBoxInformation);
+		UIObjectToggle(roomInformation, InputAction.Q, MoveRoomInformation);
+		
+		// raycast
 		General.DoRaycastForObject(hit =>{
 			BoxScript boxViewmodel = hit.transform.GetComponent<BoxScript>();
 			
@@ -118,7 +124,7 @@ public class GameControllerScript : MonoBehaviour{
 				return;			
 			}
 			boxViewmodel.Collect();			
-		}, playerCamera, playerTransform, 0);
+		}, playerCamera, playerTransform, 20f);
 		
 		General.DoRaycastForObject(hit =>{
 			ItemObject item = hit.transform.GetComponent<ItemObject>();
@@ -127,7 +133,14 @@ public class GameControllerScript : MonoBehaviour{
 				return;		
 			}
 			item.Collect();	
-		}, playerCamera, playerTransform, 0);
+		}, playerCamera, playerTransform, 30f);
+		
+		if(Input.GetAxis("Mouse ScrollWheel") > 0f){
+			itemHandler.DecreaseItemSelection();
+		}
+		else if(Input.GetAxis("Mouse ScrollWheel") < 0f){
+			itemHandler.IncreaseItemSelection();
+		}
 	}
 #endregion
 
@@ -194,36 +207,8 @@ public class GameControllerScript : MonoBehaviour{
 	public void ExitReached(){}
 	
 	public void ExitGame(){
-		// Time.timeScale = 1f;
+		// Time.timeScale = 1f; // why
 		SceneManager.LoadScene(exitGameScene);
-	}
-#endregion
-
-#region Interactions
-	private void BoxObjectHandler(){
-		/*if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) || Time.timeScale == 0f){
-			return;			
-		}
-		
-		Ray ray = playerCamera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f));
-
-		if (!Physics.Raycast(ray, out RaycastHit hit)){
-			return;	
-		}
-		if (Vector3.Distance(playerTransform.position, hit.transform.position) > 10f){
-			return;			
-		}*/
-		
-		General.DoRaycastForObject(hit =>{
-			BoxScript boxViewmodel = hit.transform.GetComponent<BoxScript>();
-			
-			if (boxViewmodel == null){
-				return;			
-			}
-			boxViewmodel.Collect();			
-		}, playerCamera, playerTransform, 0);
-		
-
 	}
 #endregion
 	
@@ -305,9 +290,8 @@ public class GameControllerScript : MonoBehaviour{
 		
 		isHoldingBox = true;
 		
-		
 		if (playerScript.stamina < playerScript.maxStamina){
-			playerScript.stamina = Mathf.Min(playerScript.maxStamina,playerScript.stamina +(playerScript.maxStamina - playerScript.stamina) / 4f); // this feels stupid.
+			playerScript.stamina = Mathf.Min(playerScript.maxStamina, playerScript.stamina + (playerScript.maxStamina - playerScript.stamina) / 4f); // this feels stupid.
 		}
 		
 		soundHandler.PlaySound(grabBoxSound, 0);
@@ -325,7 +309,7 @@ public class GameControllerScript : MonoBehaviour{
 		currentBoxData.ClearData();
 		
 		if(playerScript.stamina < playerScript.maxStamina){
-			playerScript.stamina = playerScript.maxStamina;
+			playerScript.stamina = playerScript.maxStamina / UnityEngine.Random.Range(0, 4); // i love rng
 		}
 		
 		if(boxInformation.isInState){
@@ -340,11 +324,12 @@ public class GameControllerScript : MonoBehaviour{
 			if(collectedBoxes > 1){
 				ActivateGame();
 			}
+			
+			return;
 		}
-		else if(hasGameStarted){
-			if (collectedBoxes >= maxBoxes){
-				ActivateFinaleMode();
-			}
+		
+		if(collectedBoxes >= maxBoxes){
+			ActivateFinaleMode();
 		}
 	}
 #endregion

@@ -7,7 +7,7 @@ using GameLibrary;
 public class ItemObject : MonoBehaviour{
 #region Inspector
 	[SerializeField] private Item item;
-	private SpriteRenderer billboard;
+	[SerializeField] private SpriteRenderer billboard;
 	private ItemHandler itemHandler;
 #endregion
 
@@ -23,6 +23,7 @@ public class ItemObject : MonoBehaviour{
 		}
 		
 		itemHandler.CollectItem(item);
+		gameObject.SetActive(false);
 	}
 #endregion
 }

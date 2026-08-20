@@ -16,54 +16,41 @@ public class PlayerScript : MonoBehaviour{
 	[Header("Footsteps")]
 	[SerializeField] private FootstepSoundType currentFloorType = FootstepSoundType.Concrete;
 	[SerializeField] private FootstepSound[] footstepSounds;
-	[SerializeField] private AudioSource footstepSource;
-	[SerializeField] private float footstepDelayWalk;
-	[SerializeField] private float footstepDelayRun;
+	[SerializeField] private float footstepDelay;
 	private float footstepTimer;
 	
 	[Header("Main")]
 	[SerializeField] private CharacterController characterController;
-	[SerializeField] private bool sensitivityActive;
-	[SerializeField] private float sensitivity;	
+	[SerializeField] private Transform cameraTransform;
 	[SerializeField] private float mouseSensitivity = 100f;
-	private Vector3 moveDirection;
-	
-	[Header("Walk/Run")]
-	[SerializeField] private float playerSpeed;	
-	[SerializeField] private float walkSpeed = 5f;
-	[SerializeField] private float runSpeed = 8f;
-	public bool isMoving;
-	public bool canPlayerMove = true;
-	private float mouseX;	
-	private float verticalVelocity;	
-	// private const float gravity = -9.81f;
-	// why am i calculating gravity, the game doesn't need this
+	[SerializeField] private float walkSpeed = 15f;
+	[HideInInspector] public bool isMoving;
+	[HideInInspector] public bool canPlayerMove = true;
+	private float rotation;
+	private float playerSpeed;	
+	private float verticalVelocity;
+	private const float gravity = -9.81f;
 	
 	[Header("Stamina")]
-	public float stamina;	
+	public float stamina;
 	public float maxStamina = 100f;
 	[SerializeField] private float staminaRate = 20f;
-	public bool isRunning;
 	[SerializeField] private Slider staminaBar;
+	[HideInInspector] public bool isRunning = false;
 	
 	[Header("Health")]
-	public float healthValue;
-	public float maxHealthValue = 100f;
+	public float health;
+	public float maxHealth = 100f;
 	[SerializeField] private float healthRate = 5f;
 	[SerializeField] private Slider healthBar;
-	public bool isBleeding = false;
+	[HideInInspector] public bool isBleeding = false;
 #endregion
 
 #region MainFunctions
 	private void Start(){
-		if (PlayerPrefs.GetInt("AnalogMove") == 1){
-			sensitivityActive = true;
-		}
-		
-		mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", mouseSensitivity);		
-		
+		mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", mouseSensitivity);
 		stamina = maxStamina;
-		healthValue = maxHealthValue;
+		health = maxHealth;
 		
 		if (staminaBar != null){
 			staminaBar.minValue = 0f;
@@ -90,22 +77,24 @@ public class PlayerScript : MonoBehaviour{
 			return;
 		}
 		
-		MouseMove();
+		CameraMove();
 		PlayerMove();
-		HealthCheck();
-		HandleFootsteps();
+		
 		StaminaCheck();
+		HealthCheck();
+		
+		HandleFootsteps();
 	}	
 #endregion
 
-#region MovmentFunctions
+#region FootstepFunctions
 	private void HandleFootsteps(){
 		if (isMoving && !gameController.isGamePaused){
 			footstepTimer -= Time.deltaTime;
 			if (footstepTimer <= 0f){
 				UpdateFloorType();
 				PlayFootstep();
-				footstepTimer = isRunning ? footstepDelayRun : footstepDelayWalk;
+				footstepTimer = isRunning ? footstepDelay / 1.5f : footstepDelay;
 			}
 		}
 		else{
@@ -119,7 +108,7 @@ public class PlayerScript : MonoBehaviour{
 			return;
 		}
 		
-		footstepSource.PlayOneShot(footstepSound.sounds[UnityEngine.Random.Range(0, footstepSound.sounds.Length)]);
+		soundHandler.PlaySound(footstepSound.sounds[UnityEngine.Random.Range(0, footstepSound.sounds.Length)]);
 	}
 	
 	private void UpdateFloorType(){
@@ -147,12 +136,18 @@ public class PlayerScript : MonoBehaviour{
 		}
 		return null;
 	}
-	
-	private void MouseMove(){
-		float sensitivity = mouseSensitivity * 2f;
+#endregion
+
+#region MovementFunctions
+	private void CameraMove(){
+		float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+		float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 		
-		mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
-		transform.Rotate(Vector3.up * mouseX);
+		rotation -= mouseY;
+		rotation = Mathf.Clamp(rotation, -90f, 90f);
+		
+		cameraTransform.localRotation = Quaternion.Euler(rotation, 0f, 0f);
+		transform.Rotate(0f, mouseX, 0f);
 	}
 	
 	private Vector3 GetMovementInput(){
@@ -174,53 +169,41 @@ public class PlayerScript : MonoBehaviour{
 		return input.normalized;
 	}
 	
-	// this has some bugs for sure
 	private void PlayerMove(){
-		float inputMagnitude = Mathf.Clamp01(GetMovementInput().magnitude);
-		
-		if (stamina > 0.1f & isRunning){
-			playerSpeed = runSpeed;
-			sensitivity = 1f;
-		}
-		else if(stamina >= 0 & isRunning){
-			playerSpeed = walkSpeed / 1.5f;
-			sensitivity = sensitivityActive ? inputMagnitude : 1f;
+		if (isRunning){
+			if (stamina > 0.1f){
+				playerSpeed = walkSpeed * 2f;				
+			}
+			else{
+				playerSpeed = walkSpeed / 1.5f;				
+			}
 		}
 		else{
 			playerSpeed = walkSpeed;
-			sensitivity = sensitivityActive ? inputMagnitude : 1f;
 		}
 		
-		Vector3 horizontalMove = GetMovementInput() * playerSpeed * sensitivity;
+		Vector3 finalMove = GetMovementInput() * playerSpeed;
 		
-		// removed this part. pointless calculation.
-		
-		/*
 		if (characterController.isGrounded && verticalVelocity < 0f){
-			verticalVelocity = -2f;
+			verticalVelocity = -2f;			
 		}
+		
 		verticalVelocity += gravity * Time.deltaTime;
 		finalMove.y = verticalVelocity;
-		*/
 		
-		Vector3 finalMove = horizontalMove;		
-
-		moveDirection = finalMove * Time.deltaTime;
-		characterController.Move(moveDirection);
+		characterController.Move(finalMove * Time.deltaTime);
 	}
 	
+	// this finally feels clean.	
 	private void StaminaCheck(){
-		// oh i really hate this...
-		if(isMoving & isRunning && stamina > 10f){
+		if (isMoving && isRunning){
 			stamina -= staminaRate * Time.deltaTime;
 		}
-		else if(stamina < maxStamina && isMoving || isRunning){
-			stamina += staminaRate * Time.deltaTime / 2.5f;
+		else if(stamina < maxStamina){
+			float regenerationRate = (isMoving || isRunning) ? 0.4f : 1f;
+			stamina += staminaRate * regenerationRate * Time.deltaTime;
 		}
-		else if(stamina < maxStamina && !isMoving || !isRunning){
-			stamina += staminaRate * Time.deltaTime;
-		}
-
+		
 		stamina = Mathf.Clamp(stamina, 0f, maxStamina);
 
 		if (staminaBar != null){
@@ -230,18 +213,19 @@ public class PlayerScript : MonoBehaviour{
 	}
 #endregion
 
-#region HealthHandler
+#region HealthFunctions
 	private void HealthCheck(){
-		float regenThreshold = maxHealthValue * 0.4f;
+		float regenerationThreshold = maxHealth * 0.4f;
 		
-		if (!isMoving && !isRunning && healthValue < regenThreshold && !isBleeding){
-			healthValue += (healthRate * 0.5f) * Time.deltaTime;
+		if(health < regenerationThreshold){
+			float regenerationRate = (isMoving || isRunning) ?  0.5f : 1f;
+			health += (healthRate * regenerationRate) * Time.deltaTime;
 		}
 		
-		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
+		health = Mathf.Clamp(health, 0f, maxHealth);
 		
 		if (healthBar != null){
-			float target = healthValue / maxHealthValue;
+			float target = health / maxHealth;
 			healthBar.value = Mathf.MoveTowards(healthBar.value, target, Time.deltaTime * 5f);
 		}
 	}
@@ -258,7 +242,7 @@ public class PlayerScript : MonoBehaviour{
 		
 		switch(action){
 			case HealthAction.Damage:			
-				if(absoluteAmmount > healthValue){
+				if(absoluteAmmount > health){
 					Kill(hit);
 					DebugConsole.SendLog("Started game over inside PlayerScript.");
 					return;
@@ -278,8 +262,8 @@ public class PlayerScript : MonoBehaviour{
 	}
 	
 	private void AddToHealth(float ammount){
-		healthValue += ammount;
-		healthValue = Mathf.Clamp(healthValue, 0f, maxHealthValue);
+		health += ammount;
+		health = Mathf.Clamp(health, 0f, maxHealth);
 	}
 	
 	public void Kill(CreatureType hit){
@@ -301,7 +285,8 @@ public class PlayerScript : MonoBehaviour{
 		float damage = UnityEngine.Random.Range(1.5f, 4.5f);
 		
 		while(elapsedTime <= 0f){
-			healthValue -= isRunning ? damage * 2 * Time.deltaTime : damage * Time.deltaTime; // lol
+			float damageRate = isRunning ? 2f : 1f;
+			health -= (damage * damageRate) * Time.deltaTime;
 			elapsedTime -= Time.deltaTime;
 		}
 		

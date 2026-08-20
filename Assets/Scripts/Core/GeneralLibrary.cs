@@ -127,17 +127,17 @@ namespace GeneralLibrary{
 			Cursor.visible = true;
 		}
 		
-		public static void DoRaycastForObject(Action<RaycastHit> function, Camera camera, Transform playerTransform, int input = 0){
+		public static void DoRaycastForObject(Action<RaycastHit> function, Camera camera, Transform playerTransform, float distance = 10f){
 			if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) || Time.timeScale == 0f){
 				return;
 			}
 			
 			Ray ray = camera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f));
-
+			
 			if (!Physics.Raycast(ray, out RaycastHit hit)){
 				return;				
 			}
-			if (hit.distance > 10f){
+			if (hit.distance > distance){
 				return;				
 			}
 			
@@ -145,16 +145,23 @@ namespace GeneralLibrary{
 		}
 		
 		public static void DoActionFromInput(Action function, InputAction action){
-			if(!Singleton<InputManager>.Instance.GetActionKeyDown(action)){
+			if (!Singleton<InputManager>.Instance.GetActionKeyDown(action)){
 				return;
 			}
 			
 			function();
 		}
+		
+		public static void DoActionFromInput<T>(Action<T> function, InputAction action, T arg){
+			if (!Singleton<InputManager>.Instance.GetActionKeyDown(action)){
+				return;
+			}
+			
+			function(arg);
+		}
 	}
 	
 	public static class UserInterface{
-		// void wrapper
 		public static void FadeImage(Image image, dfloat alpha, float duration = 5f){
 			CoroutineRunner.Instance.StartCoroutine(IFadeImage(image, alpha, duration));
 		}
@@ -164,6 +171,7 @@ namespace GeneralLibrary{
 			Color color = image.color;
 			
 			while (timeElapsed < duration){
+				
 				timeElapsed += Time.deltaTime;
 				
 				color.a = Mathf.Lerp(alpha.a, alpha.b, timeElapsed / duration);

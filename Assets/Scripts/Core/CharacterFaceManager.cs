@@ -108,7 +108,7 @@ public class CharacterFaceManager : MonoBehaviour{
 	}
 	
 	private int GetFaceIndex(){
-		return Mathf.Clamp(4 - Mathf.FloorToInt(playerScript.healthValue / 20f), 0, 4);
+		return Mathf.Clamp(4 - Mathf.FloorToInt(playerScript.health / 20f), 0, 4);
 	}
 	
 	private float CalculatePainTime(float pain){
