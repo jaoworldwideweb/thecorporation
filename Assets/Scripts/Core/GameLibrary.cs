@@ -15,6 +15,7 @@ namespace GameLibrary{
 	}
 	
 	public enum CreatureType{
+		None,
 		Skinwalker,
 		StarCreature
 	}
@@ -58,7 +59,10 @@ namespace GameLibrary{
 	
 	public enum ItemType{
 		Nothing,
-		ChocolateBar
+		ChocolateBar,
+		DrinkableSoda,
+		SprayableSoda,
+		HealthPack
 	}
 #endregion
 
@@ -156,9 +160,9 @@ namespace GameLibrary{
 
 	public struct ItemDefinition{
 		public ItemType type;
-		public Action function;
+		public Func<bool> function;
 		
-		public ItemDefinition(ItemType type, Action function){
+		public ItemDefinition(ItemType type, Func<bool> function){
 			this.type = type;
 			this.function = function;
 		}
@@ -181,7 +185,7 @@ namespace GameLibrary{
 		}
 		
 		public string GetFormatted(){
-			return 	$"{currentBoxColor.ToString().ToUpper()}\n" +
+			return 	$"{General.GetFormattedColor(currentBoxColor).ToUpper()}\n" +
 					$"{boxCode}";
 		}
 	}

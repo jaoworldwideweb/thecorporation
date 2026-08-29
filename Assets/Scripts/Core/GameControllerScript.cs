@@ -4,7 +4,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using TextLibrary;
 using MathLibrary;
 using GeneralLibrary;
 using GameLibrary;
@@ -20,45 +19,42 @@ public class GameControllerScript : MonoBehaviour{
 	[SerializeField] private Camera[] sceneCameras;
 	[SerializeField] private Camera playerCamera;
 	
-	[Header("Baldi")]
-	[SerializeField] private GameObject baldi;
-	[SerializeField] private BaldiScript baldiScript;
+	[Header("NPCs")]
+	[SerializeField] private GameObject[] npcObjects;
 	
-	[Header("States")]
-	public bool hasGameStarted = false;
-	public bool isGameFinale = false;
-	public bool isGameOver = false;
-	public bool isDebugMode = false;
-	public bool isMouseLocked = true;
-	public bool isGamePaused = false;
-	public bool isInsideRoomTrigger = false;
+	[HideInInspector] public bool hasGameStarted = false;
+	[HideInInspector] public bool isGameFinale = false;
+	[HideInInspector] public bool isGameOver = false;
+	[HideInInspector] public bool isDebugMode = false;
+	[HideInInspector] public bool isMouseLocked = true;
+	[HideInInspector] public bool isGamePaused = false;
+	[HideInInspector] public bool isInsideRoomTrigger = false;
 	
 	[Header("User Interface")]
 	[SerializeField] private GameObject pauseMenu;
 	[SerializeField] private GameObject playerHUD;
 	
 	[Header("Box")]
-	public BoxData currentBoxData;
+	[SerializeField] private TMP_Text boxCounter;
 	[SerializeField] private UITextObject boxInformation;
 	[SerializeField] private UITextObject roomInformation;
-	[SerializeField] private FullObject boxViewmodel;	
-	
-	[SerializeField] private TMP_Text boxCounter;
-					 public bool isHoldingBox = false;
-					 public int collectedBoxes = 0;
-					 public int maxBoxes = 9;
+	public int maxBoxes = 9;
+	[SerializeField] private FullObject boxViewmodel;
 	[SerializeField] private Vector3 boxViewmodelFinalPoint;
 	[SerializeField] private float boxViewmodelBobSpeed;
-					 private float boxViewmodelBobTime;
-					 private float boxViewmodelBobAmount;
+	
+	[HideInInspector] public int collectedBoxes = 0;
+	[HideInInspector] public BoxData currentBoxData;
 	[HideInInspector] public BoxColor roomColor = BoxColor.Red;
+	[HideInInspector] public bool isHoldingBox = false;
+	private float boxViewmodelBobTime;
+	private float boxViewmodelBobAmount;	
 	
 	[Header("Game Over")]
 	[SerializeField] private Image gameOverRender;
 	[SerializeField] private Creature[] creatures;
 	
 	[Header("Exit")]
-	[HideInInspector] public int exitsReached;
 	[SerializeField] private EntranceScript entrance;
 	
 	[Header("Scene Management")]
@@ -113,6 +109,7 @@ public class GameControllerScript : MonoBehaviour{
 		General.DoActionFromInput(itemHandler.SetItemSelection, InputAction.Slot0, 0);
 		General.DoActionFromInput(itemHandler.SetItemSelection, InputAction.Slot1, 1);
 		General.DoActionFromInput(itemHandler.UseItem, InputAction.UseItem);
+		
 		UIObjectToggle(boxInformation, InputAction.Tab, MoveBoxInformation);
 		UIObjectToggle(roomInformation, InputAction.Q, MoveRoomInformation);
 		
@@ -124,7 +121,7 @@ public class GameControllerScript : MonoBehaviour{
 				return;			
 			}
 			boxViewmodel.Collect();			
-		}, playerCamera, playerTransform, 20f);
+		}, playerCamera, playerTransform, 40f);
 		
 		General.DoRaycastForObject(hit =>{
 			ItemObject item = hit.transform.GetComponent<ItemObject>();
@@ -133,7 +130,7 @@ public class GameControllerScript : MonoBehaviour{
 				return;		
 			}
 			item.Collect();	
-		}, playerCamera, playerTransform, 30f);
+		}, playerCamera, playerTransform, 40f);
 		
 		if(Input.GetAxis("Mouse ScrollWheel") > 0f){
 			itemHandler.DecreaseItemSelection();
@@ -155,12 +152,18 @@ public class GameControllerScript : MonoBehaviour{
 		isMouseLocked = false;
 	}
 	
-	private void PauseSwitch(){
+	public void PauseSwitch(){
 		if(isGamePaused){
-			UnpauseGame();
+			LockMouse();
+			Time.timeScale = 1f;
+			isGamePaused = false;
+			pauseMenu.SetActive(false);
 		}
 		else{
-			PauseGame();
+			UnlockMouse();
+			Time.timeScale = 0f;
+			isGamePaused = true;
+			pauseMenu.SetActive(true);
 		}
 	}
 	
@@ -179,23 +182,9 @@ public class GameControllerScript : MonoBehaviour{
 #endregion
 	
 #region GameStateFunction
-	public void PauseGame(){
-		UnlockMouse();
-		Time.timeScale = 0f;
-		isGamePaused = true;
-		pauseMenu.SetActive(true);
-	}
-	
-	public void UnpauseGame(){
-		Time.timeScale = 1f;
-		isGamePaused = false;
-		pauseMenu.SetActive(false);
-		LockMouse();
-	}
-	
 	private void ActivateGame(){
 		hasGameStarted = true;
-		baldi.SetActive(true);
+		// baldi.SetActive(true);
 		entrance.wallAction(EntranceScript.wallState.lowerWall);
 	}
 	
@@ -203,8 +192,6 @@ public class GameControllerScript : MonoBehaviour{
 		isGameFinale = true;
 		entrance.wallAction(EntranceScript.wallState.raiseWall);
 	}
-	
-	public void ExitReached(){}
 	
 	public void ExitGame(){
 		// Time.timeScale = 1f; // why
@@ -234,7 +221,7 @@ public class GameControllerScript : MonoBehaviour{
 #region BoxFunctions
 	// this block of code makes me go insane every day.
  	private string UpdateBoxCount(){
-		return $"{TextLib.ReadOutNum(collectedBoxes)} out of {TextLib.ReadOutNum(maxBoxes)} boxes.";
+		return $"{General.ReadOutNumber(collectedBoxes)} out of {General.ReadOutNumber(maxBoxes)} boxes.";
 	}
 	
 	public IEnumerator MoveRoomInformation(bool putInterfaceUp, float time = 0.45f){
@@ -258,7 +245,7 @@ public class GameControllerScript : MonoBehaviour{
 	}
 	
 	public string GetFormattedRoomName(){
-		return $"You are in the {roomColor.ToString().ToLower()} room";
+		return $"You are in the {General.GetFormattedColor(roomColor).ToLower()} room";
 	}
 	
 	private void BobBox(){

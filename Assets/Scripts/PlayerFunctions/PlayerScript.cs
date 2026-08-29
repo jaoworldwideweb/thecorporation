@@ -24,8 +24,9 @@ public class PlayerScript : MonoBehaviour{
 	[SerializeField] private Transform cameraTransform;
 	[SerializeField] private float mouseSensitivity = 100f;
 	[SerializeField] private float walkSpeed = 15f;
-	[HideInInspector] public bool isMoving;
+	[HideInInspector] public bool isMoving = false;
 	[HideInInspector] public bool canPlayerMove = true;
+	[HideInInspector] public bool isDrinking = false;
 	private float rotation;
 	private float playerSpeed;	
 	private float verticalVelocity;
@@ -230,29 +231,34 @@ public class PlayerScript : MonoBehaviour{
 		}
 	}
 	
-	public void DoHealthAction(HealthAction action, CreatureType hit, float ammount = 0f){
+	public void DoHealthAction(HealthAction action, float ammount, CreatureType hit){
 		float absoluteAmmount = Mathf.Abs(ammount);
 		float negativeAmmount = ammount;
 		bool isAmmountNull = CommonMath.IsValueNullOrZero(ammount);
 		
 		if(isAmmountNull & hit != null & action == HealthAction.Damage){
-			DebugConsole.SendLog("Called a damage action without giving params.");
 			return;
 		}
 		
 		switch(action){
-			case HealthAction.Damage:			
+			case HealthAction.Damage:
+				if(hit == CreatureType.None){
+					return;
+				}
+						
 				if(absoluteAmmount > health){
 					Kill(hit);
-					DebugConsole.SendLog("Started game over inside PlayerScript.");
 					return;
 				}
 				
 				AddToHealth(negativeAmmount);
 				faceManager.TakeDamage(absoluteAmmount);
-				if(hit == CreatureType.StarCreature){
+				
+				if(hit != CreatureType.StarCreature){
 					return;
-				}			
+				}
+				
+				Bleed(UnityEngine.Random.Range(0f, 8f));
 				break;
 				
 			case HealthAction.Regeneration:

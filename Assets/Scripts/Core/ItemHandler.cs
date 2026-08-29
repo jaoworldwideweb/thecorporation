@@ -26,11 +26,12 @@ public class ItemHandler : MonoBehaviour{
 #endregion
 
 #region MainFunctions
-	// wow
 	public void Awake(){
 		itemDefinitions = new ItemDefinition[]{
 			new ItemDefinition(ItemType.Nothing, null),
-			new ItemDefinition(ItemType.ChocolateBar, itemFunctions.ChocolateBar)
+			new ItemDefinition(ItemType.ChocolateBar, itemFunctions.ChocolateBar),
+			new ItemDefinition(ItemType.DrinkableSoda, itemFunctions.DrinkableSoda),
+			new ItemDefinition(ItemType.SprayableSoda, itemFunctions.SprayableSoda)
 		};
 	}
 	
@@ -54,23 +55,28 @@ public class ItemHandler : MonoBehaviour{
 		Item item = itemSlots[itemSelected].item;
 		
 		if (item.type == ItemType.Nothing){
+			return;			
+		}
+		
+		foreach (ItemDefinition definition in itemDefinitions){
+			if (item.type != definition.type){
+				continue;			
+			}
+			if (definition.function == null){
+				return;			
+			}
+			
+			bool performed = definition.function();
+
+			if (!performed){
+				return;			
+			}
+			
+			ResetItem(item);	
 			return;
 		}
 		
-		foreach(ItemDefinition definition in itemDefinitions){
-			if(item.type == definition.type){
-				if(definition.function == null){
-					return;
-				}
-				
-				definition.function();
-				ResetItem(item);
-				return;
-			}
-		}
-		
 		DebugConsole.ThrowError($"No function found for {item.type}.");
-		
 	}
 	
 	public void UpdateSelectionOffset(){

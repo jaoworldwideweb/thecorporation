@@ -5,6 +5,7 @@ using System.Collections;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using MathLibrary;
+using GameLibrary;
 using TMPro;
 using System.Diagnostics.CodeAnalysis;
 
@@ -117,11 +118,42 @@ namespace GeneralLibrary{
 			return textInfo.ToTitleCase(text.ToLower());
 		}
 		
+		public static string ReadOutNumber(int number, bool isProperCase = false){
+			string[] words = {
+				"zero", "one", "two",
+				"three", "four", "five",
+				"six", "seven","eight",
+				"nine",
+			};
+			
+			if (number < 0 || number >= words.Length){
+				return "not implemented";
+			}
+			
+			string result = words[number];
+			return isProperCase ? char.ToUpper(result[0]) + result.Substring(1) : result;
+		}
+		
+		public static string GetFormattedColor(BoxColor color){
+			string[] words = {
+				"Red",
+				"Green",
+				"Blue",
+				"Orange",
+				"Light Red",
+				"Light Green",
+				"Light Blue",
+				"Light Orange"
+			};
+			
+			return words[(int)color];
+		}
+		
 		public static void LockCursor(){
 			Cursor.lockState = CursorLockMode.Locked;
 			Cursor.visible = false;
 		}
-		
+				
 		public static void UnlockCursor(){
 			Cursor.lockState = CursorLockMode.None;
 			Cursor.visible = true;

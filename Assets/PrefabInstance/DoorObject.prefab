@@ -532,7 +532,7 @@ GameObject:
   - component: {fileID: 5442076088366963009}
   m_Layer: 10
   m_Name: Front
-  m_TagString: SwingingDoor
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

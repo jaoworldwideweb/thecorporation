@@ -11,19 +11,19 @@ Shader "Custom/RealShader" {
 		_Warp ("Screen Warp", Range(0, 0.05)) = 0.008
 		_Chromatic ("Chromatic Aberration", Range(0, 0.02)) = 0.002
 	}
-
+	
 	SubShader{
 		Cull Off
 		ZWrite Off
 		ZTest Always
-
+		
 		Pass{
 			CGPROGRAM // :eyes: lowk fun asf
-
+			
 			#pragma vertex vert
 			#pragma fragment frag
 			#include "UnityCG.cginc"
-
+			
 			sampler2D _MainTex;
 			float4 _MainTex_TexelSize;
 			float _PixelSize;
@@ -35,26 +35,26 @@ Shader "Custom/RealShader" {
 			float _Vignette;
 			float _Warp;
 			float _Chromatic;
-
+			
 			const float bayer[16] = {0,  8,  2, 10, 12,  4, 14,  6, 3, 11,  1,  9, 15,  7, 13,  5};
-
+			
 			struct appdata{
 				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
 			};
-
+			
 			struct v2f{
 				float4 vertex : SV_POSITION;
 				float2 uv : TEXCOORD0;
 			};
-
+			
 			v2f vert(appdata v){
 				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex); // me when apis
+				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = v.uv;
 				return o;
 			}
-
+			
 			// alldat just to save 2 cpu cycles :joy:
 			float hash21(float2 p){
 				p = frac(p * float2(123.34, 456.21));
@@ -62,7 +62,7 @@ Shader "Custom/RealShader" {
 
 				return frac(p.x * p.y);
 			}
-
+			
 			float bayerFour(float2 p){
 				int x = (int)p.x & 3;
 				int y = (int)p.y & 3;
@@ -81,7 +81,7 @@ Shader "Custom/RealShader" {
 				float r2 = dot(centered, centered);
 
 				uv += centered * r2 * _Warp;
-				uv = saturate(uv); // dont you DARE sample outside.
+				uv = saturate(uv);
 
 				float2 resolution = _MainTex_TexelSize.zw;
 				float2 pixelCount = resolution / _PixelSize;
