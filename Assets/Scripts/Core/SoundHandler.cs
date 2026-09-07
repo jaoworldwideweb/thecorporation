@@ -36,7 +36,7 @@ public class SoundHandler : MonoBehaviour{
 #endregion
 
 #region SoundFunctions
-	private bool IsSoundReady(AudioClip sound, SoundEffectsOutput output){
+	private bool IsSoundReady(AudioClip sound, SoundOutput output){
 		if (sound == null){
 			return false;
 		}
@@ -53,7 +53,7 @@ public class SoundHandler : MonoBehaviour{
 		return true;
 	}
 
-	public void PlaySound(AudioClip sound, SoundEffectsOutput output = SoundEffectsOutput.PlayerSounds){
+	public void PlaySound(AudioClip sound, SoundOutput output = SoundOutput.PlayerSounds){
 		if (!IsSoundReady(sound, output)){
 			return;
 		}
@@ -62,7 +62,7 @@ public class SoundHandler : MonoBehaviour{
 		soundEffects[outputSlot].PlayOneShot(sound);
 	}
 
-	public void PlaySoundOnQueue(AudioClip sound, SoundEffectsOutput output = SoundEffectsOutput.PlayerSounds){
+	public void PlaySoundOnQueue(AudioClip sound, SoundOutput output = SoundOutput.PlayerSounds){
 		if (!IsSoundReady(sound, output)){
 			return;
 		}
@@ -75,7 +75,7 @@ public class SoundHandler : MonoBehaviour{
 		}
 	}
 
-	private IEnumerator ProcessQueue(SoundEffectsOutput output){
+	private IEnumerator ProcessQueue(SoundOutput output){
 		int outputSlot = (int)output;
 		isPlaying[outputSlot] = true;
 		

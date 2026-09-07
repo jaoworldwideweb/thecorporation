@@ -5,6 +5,7 @@ using TMPro;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MathLibrary;
 using GeneralLibrary;
 using GameLibrary;
 
@@ -49,13 +50,6 @@ public class MenuManager : MonoBehaviour{
 			PlayerPrefs.SetInt("OptionsSet", 1);
 			PlayerPrefs.Save();
 		}
-		
-		// for vex since he got the old builds that did horrid screen size changes
-		/*if(!PlayerPrefs.HasKey("beta_HasNewResolutionBeenSet")){
-			Screen.SetResolution(1920, 1080, true);
-			PlayerPrefs.SetInt("beta_HasNewResolutionBeenSet", 1);
-			PlayerPrefs.Save();
-		}*/
 		
 		soundHandler.PlayMusic(ambience, MusicOutput.Ambience);
 		StartCoroutine(StartFadeIn());

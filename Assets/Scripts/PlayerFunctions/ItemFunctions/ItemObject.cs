@@ -18,7 +18,6 @@ public class ItemObject : MonoBehaviour{
 	
 	public void Collect(){
 		if(itemHandler == null){
-			DebugConsole.ThrowError("No ItemHandler found in scene.");
 			return;
 		}
 		

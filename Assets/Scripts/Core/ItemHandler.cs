@@ -75,8 +75,6 @@ public class ItemHandler : MonoBehaviour{
 			ResetItem(item);	
 			return;
 		}
-		
-		DebugConsole.ThrowError($"No function found for {item.type}.");
 	}
 	
 	public void UpdateSelectionOffset(){

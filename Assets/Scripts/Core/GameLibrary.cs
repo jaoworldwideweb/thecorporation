@@ -36,7 +36,7 @@ namespace GameLibrary{
 		Water
 	}
 	
-	public enum SoundEffectsOutput{
+	public enum SoundOutput{
 		PlayerSounds,
 		GameSounds
 	}
@@ -157,7 +157,7 @@ namespace GameLibrary{
 			outputTexture.sprite = item.sprite;
 		}
 	}
-
+	
 	public struct ItemDefinition{
 		public ItemType type;
 		public Func<bool> function;
@@ -224,8 +224,6 @@ namespace GameLibrary{
 		public string workplace = "A00";
 		public string id = "0000";
 		public Job job;
-		[TextArea(3, 10)]
-		public string description;
 		
 		public string GetFormattedData(){
 			return
@@ -233,6 +231,21 @@ namespace GameLibrary{
 				$"Date of birth: {birthday.GetDate()}\n" +
 				$"Current Job: {job.name} ({job.id})\n" +
 				$"Workplace: {workplace}\n";
+		}
+	}
+	
+	[Serializable]
+	public class CharacterDescription{
+		[Header("Main Information")]
+		public Sprite photo;
+		public string name = "Jayden Doe";
+		public string gender = "Unknown";
+		[TextArea(3, 10)] public string description;
+		
+		public string GetFormatted(){
+			return
+				$"Name: {name}\n" +
+				$"Gender: {gender}\n\n";
 		}
 	}
 #endregion
