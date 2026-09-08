@@ -9,6 +9,13 @@ using System.Runtime.CompilerServices;
 
 namespace GameLibrary{
 #region Enumeration
+	public enum Direction{
+		Up,
+		Down,
+		Left,
+		Right
+	}
+	
 	public enum HealthAction{
 		Damage,
 		Regeneration
@@ -26,7 +33,7 @@ namespace GameLibrary{
 		Bleeding
 	}
 	
-	public enum FootstepSoundType{
+	public enum FootstepType{
 		Wood,
 		Vent,		
 		Metal,
@@ -67,11 +74,12 @@ namespace GameLibrary{
 #endregion
 
 #region GameObjects
-	[Serializable]
+	[System.Serializable]
 	public class UIObject{
 		public GameObject obj;
 		public RectTransform rectTransform;
 		public Vector2 oldRectTransform = new Vector2(0f, 0f);
+		public DirectionVector2 directions;
 		public bool isMoving = false;
 		public bool isInState; // generic variable :-)
 		
@@ -88,14 +96,32 @@ namespace GameLibrary{
 			yield return UserInterface.MoveObject(rectTransform, targetPosition, easing, time);
 			isMoving = false;
 		}
+		
+		public Vector2 GetDirectionVector(Direction direction){
+			switch(direction){
+				case Direction.Up:
+					return directions.up;
+				
+				case Direction.Down:
+					return directions.down;
+				
+				case Direction.Left:
+					return directions.left;
+				
+				case Direction.Right:
+					return directions.right;
+			}
+			
+			return Vector2.zero;
+		}
 	}
 	
-	[Serializable]
+	[System.Serializable]
 	public class UITextObject : UIObject{
 		public TMP_Text objText;
 	}
 
-	[Serializable]
+	[System.Serializable]
 	public class FullObject{
 		public GameObject obj;
 		public Vector3 oldTransform = new Vector3(0f, 0f, 0f);
@@ -124,10 +150,26 @@ namespace GameLibrary{
 			currentAction = null;
 		}
 	}
+	
+	// this is so bad.
+	[System.Serializable]
+	public struct DirectionVector2{
+		public Vector2 up;
+		public Vector2 down;
+		public Vector2 left;
+		public Vector2 right;
+		
+		public DirectionVector2(Vector2 up, Vector2 down, Vector2 left, Vector2 right){
+			this.up = up;
+			this.down = down;
+			this.left = left;
+			this.right = right;
+		}
+	}
 #endregion
 
 #region GameplayData
-	[Serializable]
+	[System.Serializable]
 	public class Item{
 		public string name = "Nothing";
 		public ItemType type = ItemType.Nothing;
@@ -147,10 +189,15 @@ namespace GameLibrary{
 		}
 	}
 	
-	[Serializable]
-	public class ItemSlot{
+	[System.Serializable]
+	public struct ItemSlot{
 		public Image outputTexture;
 		public Item item;
+		
+		public ItemSlot(Image outputTexture, Item item){
+			this.outputTexture = outputTexture;
+			this.item = item;
+		}
 		
 		public void Set(Item item){
 			this.item.Transfer(item);
@@ -168,51 +215,54 @@ namespace GameLibrary{
 		}
 	}
 	
-	[Serializable]
-	public class BoxData{
-		public BoxColor currentBoxColor = BoxColor.Red;
-		public int boxCode = 0;
+	[System.Serializable]
+	public struct Box{
+		public BoxColor color;
+		public int id;
 		
-		public void ClearData(){
-			currentBoxColor = BoxColor.Red;
-			boxCode = 0;
+		public Box(BoxColor color, int id){
+			this.color = color;
+			this.id = id;
 		}
 		
-		public void Transfer(BoxData data){
+		// functions
+		public void ClearData(){
+			color = BoxColor.Red;
+			id = 0;
+		}
+		
+		public void Transfer(Box box){
 			ClearData();
-			currentBoxColor = data.currentBoxColor;
-			boxCode = data.boxCode;
+			color = box.color;
+			id = box.id;
 		}
 		
 		public string GetFormatted(){
-			return 	$"{General.GetFormattedColor(currentBoxColor).ToUpper()}\n" +
-					$"{boxCode}";
+			return 
+				$"{General.GetFormattedColor(color).ToUpper()}\n" +
+				$"{id}";
 		}
 	}
 	
-	[Serializable]
+	[System.Serializable]
 	public class FootstepSound{
-		public FootstepSoundType soundType = FootstepSoundType.Concrete;
+		public FootstepType type;
 		public PhysicMaterial material;
 		public AudioClip[] sounds;
 	}
-
-	[Serializable]
-	public class Creature{
-		public CreatureType type;
-		public AudioClip music;
-		public Sprite deathImage;
-		public Sprite[] autopsyImage;
-		public bool hasDeathImage = false;
-	}
 	
-	[Serializable]
-	public class Job{
-		public string name = "Worker";
-		public string id = "0000";
+	[System.Serializable]
+	public struct Job{
+		public string name;
+		public string id;
+		
+		public Job(string name, string id){
+			this.name = name;
+			this.id = id;
+		}
 	}
 
-	[Serializable]
+	[System.Serializable]
 	public class EmployeeData{
 		[Header("Main Information")]
 		public Sprite photo;
@@ -225,7 +275,7 @@ namespace GameLibrary{
 		public string id = "0000";
 		public Job job;
 		
-		public string GetFormattedData(){
+		public string GetFormatted(){
 			return
 				$"Gender: {gender}\n" +
 				$"Date of birth: {birthday.GetDate()}\n" +
@@ -234,7 +284,7 @@ namespace GameLibrary{
 		}
 	}
 	
-	[Serializable]
+	[System.Serializable]
 	public class CharacterDescription{
 		[Header("Main Information")]
 		public Sprite photo;

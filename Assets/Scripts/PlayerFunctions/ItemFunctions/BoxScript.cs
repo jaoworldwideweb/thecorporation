@@ -8,12 +8,12 @@ public class BoxScript : MonoBehaviour{
 #region Inspector
 	[Header("Main")]
 	[SerializeField] private GameControllerScript gameController;
-	public BoxData boxData = new BoxData();
+	public Box boxData = new Box();
 #endregion
 
 #region MainFunctions
 	private void Start(){
-		boxData.boxCode = UnityEngine.Random.Range(1000, 9000);
+		boxData.id = UnityEngine.Random.Range(1000, 9000);
 	}
 
 	public void Collect(){

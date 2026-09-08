@@ -14,14 +14,17 @@ public class PlayerScript : MonoBehaviour{
 	[SerializeField] private CharacterFaceManager faceManager;
 	
 	[Header("Footsteps")]
-	[SerializeField] private FootstepSoundType currentFloorType = FootstepSoundType.Concrete;
+	[SerializeField] private FootstepType currentFloorType = FootstepType.Concrete;
 	[SerializeField] private FootstepSound[] footstepSounds;
 	[SerializeField] private float footstepDelay;
 	private float footstepTimer;
 	
 	[Header("Main")]
 	[SerializeField] private CharacterController characterController;
-	[SerializeField] private Transform cameraTransform;
+	[SerializeField] private Transform mainCameraTransform;
+	[SerializeField] private Transform backCameraTransform;
+	[SerializeField] private Transform mainFlashlightTransform;
+	[SerializeField] private Transform backFlashlightTransform;
 	[SerializeField] private float mouseSensitivity = 100f;
 	[SerializeField] private float walkSpeed = 15f;
 	[HideInInspector] public bool isMoving = false;
@@ -53,7 +56,7 @@ public class PlayerScript : MonoBehaviour{
 		stamina = maxStamina;
 		health = maxHealth;
 		
-		if (staminaBar != null){
+		/*if (staminaBar != null){
 			staminaBar.minValue = 0f;
 			staminaBar.maxValue = 1f;
 			staminaBar.value = 1f;
@@ -63,7 +66,7 @@ public class PlayerScript : MonoBehaviour{
 			healthBar.minValue = 0f;
 			healthBar.maxValue = 1f;
 			healthBar.value = 1f;
-		}
+		}*/
 	}
 	
 	private void Update(){
@@ -79,6 +82,8 @@ public class PlayerScript : MonoBehaviour{
 		}
 		
 		CameraMove();
+		FlashlightMove(mainCameraTransform, mainFlashlightTransform, 9f);
+		FlashlightMove(backCameraTransform, backFlashlightTransform, 9f);
 		PlayerMove();
 		
 		StaminaCheck();
@@ -105,10 +110,6 @@ public class PlayerScript : MonoBehaviour{
 
 	private void PlayFootstep(){
 		FootstepSound footstepSound = GetFootstepSound(currentFloorType);
-		if (footstepSound == null || footstepSound.sounds.Length == 0){
-			return;
-		}
-		
 		soundHandler.PlaySound(footstepSound.sounds[UnityEngine.Random.Range(0, footstepSound.sounds.Length)]);
 	}
 	
@@ -120,18 +121,18 @@ public class PlayerScript : MonoBehaviour{
 
 			foreach (FootstepSound footstepSound in footstepSounds){
 				if (footstepSound.material == material){
-					currentFloorType = footstepSound.soundType;
+					currentFloorType = footstepSound.type;
 					return;
 				}
 			}
 		}
 
-		currentFloorType = FootstepSoundType.Concrete;
+		currentFloorType = FootstepType.Concrete;
 	}
 	
-	private FootstepSound GetFootstepSound(FootstepSoundType soundType){
+	private FootstepSound GetFootstepSound(FootstepType type){
 		foreach (FootstepSound footstepSound in footstepSounds){
-			if (footstepSound.soundType == soundType){
+			if (footstepSound.type == type){
 				return footstepSound;
 			}
 		}
@@ -147,8 +148,13 @@ public class PlayerScript : MonoBehaviour{
 		rotation -= mouseY;
 		rotation = Mathf.Clamp(rotation, -90f, 90f);
 		
-		cameraTransform.localRotation = Quaternion.Euler(rotation, 0f, 0f);
+		mainCameraTransform.localRotation = Quaternion.Euler(rotation, 0f, 0f);
 		transform.Rotate(0f, mouseX, 0f);
+	}
+	
+	private void FlashlightMove(Transform camera, Transform flashlight, float smoothness){
+		flashlight.position = Vector3.Lerp(flashlight.position, camera.position, smoothness * Time.deltaTime);
+		flashlight.rotation = Quaternion.Slerp(flashlight.rotation, camera.rotation, smoothness * Time.deltaTime);
 	}
 	
 	private Vector3 GetMovementInput(){

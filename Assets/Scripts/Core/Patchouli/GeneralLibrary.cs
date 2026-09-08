@@ -112,7 +112,7 @@ namespace GeneralLibrary{
 			Ray ray = camera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f));
 			
 			if (!Physics.Raycast(ray, out RaycastHit hit)){
-				return;				
+				return;
 			}
 			if (hit.distance > distance){
 				return;				
@@ -210,13 +210,15 @@ namespace GeneralLibrary{
 			
 			Material material = image.material;
 			int fadeID = Shader.PropertyToID("_Fade");
+			material.SetFloat(fadeID, fade.a);
 			
-			while (timeElapsed < duration){
+			while(timeElapsed < duration){
 				timeElapsed += Time.deltaTime;
 				
-				float value = Mathf.Lerp(fade.a, fade.b, timeElapsed / duration);
-				material.SetFloat(fadeID, value);
+				float t = Mathf.Clamp01(timeElapsed / duration);
+				float value = Mathf.Lerp(fade.a, fade.b, t);
 				
+				material.SetFloat(fadeID, value);
 				yield return null;
 			}
 			

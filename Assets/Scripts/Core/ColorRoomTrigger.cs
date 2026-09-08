@@ -60,7 +60,7 @@ public class ColorRoomTrigger : MonoBehaviour{
 	}
 	
 	private bool isBoxValid(){
-		if(gameController.currentBoxData.currentBoxColor == roomColor){
+		if(gameController.currentBoxData.color == roomColor){
 			return true;
 		}
 		
@@ -91,8 +91,19 @@ public class ColorRoomTrigger : MonoBehaviour{
 		progressSliderObject.SetActive(false);
 		ResetProgress();
 		
-		StartCoroutine(gameController.MoveRoomInformation(false));
 		gameController.isInsideRoomTrigger = false;
+		
+		// this shit looks ugly as FUCK!!!!!!!!
+		StartCoroutine(
+			gameController.IMoveInfoPanel(
+				() => gameController.roomInformation.objText.text = gameController.GetFormattedRoomName(),
+				gameController.isInsideRoomTrigger,
+				Direction.Down,
+				gameController.roomInformation
+			)
+		);
+													 
+		
 	}
 #endregion
 }

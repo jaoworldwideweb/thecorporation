@@ -1,7 +1,6 @@
 using UnityEngine;
 using System;
 using System.Runtime.CompilerServices;
-using DataLibrary;
 
 namespace MathLibrary{
 #region Structs

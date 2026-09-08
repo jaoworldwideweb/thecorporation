@@ -31,13 +31,6 @@ Shader "Custom/DitherFade" {
 			float _Fade;
 			float _DitherSize;
 			
-			const float bayer[16] = {
-				0,  8,  2, 10,
-				12, 4, 14, 6,
-				3, 11, 1,  9,
-				15, 7, 13, 5
-			};
-			
 			struct appdata{
 				float4 vertex : POSITION;
 				float4 color : COLOR;
@@ -61,17 +54,44 @@ Shader "Custom/DitherFade" {
 			float bayerFour(float2 p){
 				int x = (int)p.x & 3;
 				int y = (int)p.y & 3;
-				return bayer[y * 4 + x] / 16.0;
+				
+				// had to do this since pre-calculation doesn't look good
+				// with this type of shader.
+				
+				if(x == 0){
+					if(y == 0) return 0.5 / 16.0;
+					if(y == 1) return 12.5 / 16.0;
+					if(y == 2) return 3.5 / 16.0;
+					return 15.5 / 16.0;
+				}
+				
+				if(x == 1){
+					if(y == 0) return 8.5 / 16.0;
+					if(y == 1) return 4.5 / 16.0;
+					if(y == 2) return 11.5 / 16.0;
+					return 7.5 / 16.0;
+				}
+				
+				if(x == 2){
+					if(y == 0) return 2.5 / 16.0;
+					if(y == 1) return 14.5 / 16.0;
+					if(y == 2) return 1.5 / 16.0;
+					return 13.5 / 16.0;
+				}
+				
+				if(y == 0) return 10.5 / 16.0;
+				if(y == 1) return 6.5 / 16.0;
+				if(y == 2) return 9.5 / 16.0;
+				return 5.5 / 16.0;
 			}
 			
 			fixed4 frag(v2f i) : SV_Target{
 				float4 col = tex2D(_MainTex, i.uv) * i.color * _Color;
 				
-				// make the pattern screen-space so it doesn't stretch with the image
-				float2 screenPixel = floor(i.uv * _MainTex_TexelSize.zw / _DitherSize);
-				float threshold = bayerFour(screenPixel);
+				float2 pixel = floor(i.uv * 512.0 / _DitherSize);
+				float threshold = bayerFour(pixel);
 				
-				clip(col.a - threshold);
+				clip(_Fade - threshold);
 				
 				return col;
 			}

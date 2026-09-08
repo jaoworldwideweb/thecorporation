@@ -36,23 +36,19 @@ public class GameControllerScript : MonoBehaviour{
 	
 	[Header("Box")]
 	[SerializeField] private TMP_Text boxCounter;
-	[SerializeField] private UITextObject boxInformation;
-	[SerializeField] private UITextObject roomInformation;
+	public UITextObject boxInformation;
+	public UITextObject roomInformation;
 	public int maxBoxes = 9;
 	[SerializeField] private FullObject boxViewmodel;
 	[SerializeField] private Vector3 boxViewmodelFinalPoint;
 	[SerializeField] private float boxViewmodelBobSpeed;
 	
 	[HideInInspector] public int collectedBoxes = 0;
-	[HideInInspector] public BoxData currentBoxData;
+	[HideInInspector] public Box currentBoxData;
 	[HideInInspector] public BoxColor roomColor = BoxColor.Red;
 	[HideInInspector] public bool isHoldingBox = false;
 	private float boxViewmodelBobTime;
 	private float boxViewmodelBobAmount;	
-	
-	[Header("Game Over")]
-	[SerializeField] private Image gameOverRender;
-	[SerializeField] private Creature[] creatures;
 	
 	[Header("Exit")]
 	[SerializeField] private EntranceScript entrance;
@@ -110,8 +106,8 @@ public class GameControllerScript : MonoBehaviour{
 		General.DoActionFromInput(itemHandler.SetItemSelection, InputAction.Slot1, 1);
 		General.DoActionFromInput(itemHandler.UseItem, InputAction.UseItem);
 		
-		UIObjectToggle(boxInformation, InputAction.Tab, MoveBoxInformation);
-		UIObjectToggle(roomInformation, InputAction.Q, MoveRoomInformation);
+		PanelToggle(() => boxInformation.objText.text = currentBoxData.GetFormatted(), isHoldingBox, boxInformation, InputAction.Tab);
+		PanelToggle(() => roomInformation.objText.text = GetFormattedRoomName(), isInsideRoomTrigger, roomInformation, InputAction.Q);
 		
 		// raycast
 		General.DoRaycastForObject(hit =>{
@@ -167,18 +163,7 @@ public class GameControllerScript : MonoBehaviour{
 		}
 	}
 	
-	private void UIObjectToggle(UITextObject obj, InputAction action, Func<bool, float, IEnumerator> function){
-		if(!Singleton<InputManager>.Instance.GetActionKeyDown(action) || isGameOver || isGamePaused){
-			return;
-		}
-		
-		if(obj.isMoving){
-			return;			
-		}
-		
-		obj.isInState = !obj.isInState;
-		StartCoroutine(function(obj.isInState, 0.45f));
-	}
+
 #endregion
 	
 #region GameStateFunction
@@ -220,34 +205,34 @@ public class GameControllerScript : MonoBehaviour{
 	
 #region BoxFunctions
 	// this block of code makes me go insane every day.
- 	private string UpdateBoxCount(){
-		return $"{General.ReadOutNumber(collectedBoxes)} out of {General.ReadOutNumber(maxBoxes)} boxes.";
+ 	private string UpdateBoxCount() => $"{General.ReadOutNumber(collectedBoxes)} out of {General.ReadOutNumber(maxBoxes)} boxes.";
+	public string GetFormattedRoomName() => $"You are in the {General.GetFormattedColor(roomColor).ToLower()} room";
+	
+	public void PanelToggle(Action function, bool check, UITextObject obj, InputAction input, float time = 0.45f){
+		if (!Singleton<InputManager>.Instance.GetActionKeyDown(input) || isGameOver || isGamePaused){
+			return;
+		}
+		
+		if (obj.isMoving){
+			return;			
+		}
+		
+		obj.isInState = !obj.isInState;
+		Direction direction = obj.isInState ? Direction.Up : Direction.Down;
+		StartCoroutine(IMoveInfoPanel(function, check, direction, obj, time));
 	}
 	
-	public IEnumerator MoveRoomInformation(bool putInterfaceUp, float time = 0.45f){
-		if(!isInsideRoomTrigger){
+	public IEnumerator IMoveInfoPanel(Action function, bool check, Direction direction, UITextObject obj, float time = 0.45f){
+		if (!check){
 			yield break;
 		}
 		
-		Vector2 target = putInterfaceUp ? new Vector2(-100, 50) : new Vector2(-100, -50);
-		roomInformation.objText.text = GetFormattedRoomName();
-		yield return roomInformation.MoveObject(target, CommonMath.EaseOutCubic, time);
+		Vector2 target = obj.GetDirectionVector(direction);
+		function();
+		yield return obj.MoveObject(target, CommonMath.EaseOutCubic, time);
 	}
 	
-	public IEnumerator MoveBoxInformation(bool putInterfaceUp, float time = 0.45f){
-		if(!isHoldingBox){
-			yield break;
-		}
-		
-		Vector2 target = putInterfaceUp ? new Vector2(-100, -100) : new Vector2(100, -100);
-		boxInformation.objText.text = currentBoxData.GetFormatted();
-		yield return boxInformation.MoveObject(target, CommonMath.EaseOutCubic, time);
-	}
-	
-	public string GetFormattedRoomName(){
-		return $"You are in the {General.GetFormattedColor(roomColor).ToLower()} room";
-	}
-	
+	// ???
 	private void BobBox(){
 		float targetAmount = playerScript.isMoving ? 1f : 0f;
 		boxViewmodelBobAmount = Mathf.Lerp(boxViewmodelBobAmount, targetAmount, Time.deltaTime * 8f);
@@ -300,7 +285,15 @@ public class GameControllerScript : MonoBehaviour{
 		}
 		
 		if(boxInformation.isInState){
-			StartCoroutine(MoveBoxInformation(false));
+			StartCoroutine(
+				IMoveInfoPanel(
+					() => boxInformation.objText.text = currentBoxData.GetFormatted(),
+					isHoldingBox,
+					Direction.Down,
+					boxInformation
+				)
+			);
+			
 			boxInformation.objText.text = null;
 		}
 		
@@ -311,7 +304,6 @@ public class GameControllerScript : MonoBehaviour{
 			if(collectedBoxes > 1){
 				ActivateGame();
 			}
-			
 			return;
 		}
 		

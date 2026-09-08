@@ -12,6 +12,7 @@ public class CharacterDescriptionManager : MonoBehaviour{
 	[SerializeField] private CharacterDescription[] characters;
 	[SerializeField] private Image spriteOutput;
 	[SerializeField] private TMP_Text[] textOutput;
+	
 	[Header("Sounds")]
 	[SerializeField] private SoundHandler soundHandler;
 	[SerializeField] private AudioClip selectionSound;
@@ -51,7 +52,7 @@ public class CharacterDescriptionManager : MonoBehaviour{
 	}
 	
 	public void SetMenu(CharacterDescription character){
-		spriteOutput.sprite = character.photo;		
+		spriteOutput.sprite = character.photo;
 		textOutput[0].text = character.GetFormatted();
 		textOutput[1].text = character.description;
 	}

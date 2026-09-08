@@ -92,7 +92,7 @@ public class MenuManager : MonoBehaviour{
 		idPhoto.sprite = currentEmployee.photo;
 		
 		employeeDescriptionOutput[0].text = currentEmployee.name;
-		employeeDescriptionOutput[1].text = currentEmployee.GetFormattedData();
+		employeeDescriptionOutput[1].text = currentEmployee.GetFormatted();
 	}
 	
 	public void ExitGame(){
