@@ -6,6 +6,11 @@ using GeneralLibrary;
 using MathLibrary;
 using GameLibrary;
 
+public class FilmCamera{
+	public Camera camera;
+	public Light light;
+}
+
 public class PlayerScript : MonoBehaviour{
 #region Inspector
 	[Header("Scripts")]
@@ -33,8 +38,11 @@ public class PlayerScript : MonoBehaviour{
 	private float rotation;
 	private float playerSpeed;	
 	private float verticalVelocity;
-	private const float gravity = -9.81f;
+	private const float gravity = -9;
 	
+	[Header("Viewmodel")]
+	[SerializeField] private FullObject boxViewmodel;
+
 	[Header("Stamina")]
 	public float stamina;
 	public float maxStamina = 100f;
@@ -56,12 +64,18 @@ public class PlayerScript : MonoBehaviour{
 		stamina = maxStamina;
 		health = maxHealth;
 		
-		/*if (staminaBar != null){
+		StartCoroutine(BobBoxViewmodel(boxViewmodel, new Vector3(0,0,0), 2f, 2f, HighMath.pi)); // input later
+		
+		/*
+		
+		might keep this but idk
+		
+		if (staminaBar != null){
 			staminaBar.minValue = 0f;
 			staminaBar.maxValue = 1f;
 			staminaBar.value = 1f;
 		}
-
+		
 		if (healthBar != null){
 			healthBar.minValue = 0f;
 			healthBar.maxValue = 1f;
@@ -81,21 +95,25 @@ public class PlayerScript : MonoBehaviour{
 			return;
 		}
 		
+		// visual
 		CameraMove();
 		FlashlightMove(mainCameraTransform, mainFlashlightTransform, 9f);
 		FlashlightMove(backCameraTransform, backFlashlightTransform, 9f);
+		BobBox();
+		
+		// movement
 		PlayerMove();
-		
 		StaminaCheck();
-		HealthCheck();
-		
 		HandleFootsteps();
+		
+		// misc
+		HealthCheck();
 	}	
 #endregion
 
 #region FootstepFunctions
 	private void HandleFootsteps(){
-		if (isMoving && !gameController.isGamePaused){
+		if (isMoving && !gameController.isGamePaused && Time.timeScale == 0f){
 			footstepTimer -= Time.deltaTime;
 			if (footstepTimer <= 0f){
 				UpdateFloorType();
@@ -150,6 +168,24 @@ public class PlayerScript : MonoBehaviour{
 		
 		mainCameraTransform.localRotation = Quaternion.Euler(rotation, 0f, 0f);
 		transform.Rotate(0f, mouseX, 0f);
+	}
+	
+	private IEnumerator BobBoxViewmodel(FullObject obj, Vector3 targetPosition, float amount, float speed, float time){
+		while (true){
+			float targetAmount = playerScript.isMoving ? 1f : 0f;
+			float bobAmount = Mathf.Lerp(amount, targetAmount, Time.deltaTime * 8f); // why 8f? i forgot.
+			
+			if (playerScript.isMoving){
+				time += Time.deltaTime * speed;
+				
+				float wave = (Mathf.Sin(boxViewmodelBobTime) + 1f) * 0.5f;
+				
+				Vector3 bobTarget = Vector3.Lerp(boxViewmodel.oldTransform, targetPosition, wave);
+				boxViewmodel.obj.transform.localPosition = Vector3.Lerp(boxViewmodel.oldTransform, bobTarget, amount);
+			}
+			
+			yield return null;
+		}
 	}
 	
 	private void FlashlightMove(Transform camera, Transform flashlight, float smoothness){

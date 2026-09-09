@@ -129,6 +129,7 @@ namespace MathLibrary{
 	}
 	
 	public static class HighMath{
+	#region MathConstants
 		private const float ln2 = 0.6931471805599453f;
 		private const float invLn2 = 1.4426950408889634f;
 		public const float pi = 3.14159265358979323846f;
@@ -136,7 +137,8 @@ namespace MathLibrary{
 		private const float b = 4f / pi;
 		private const float c = -4f / (pi * pi);
 		private const float p = 0.225f;
-		
+	#endregion
+	
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float Square(float input) => input * input;
 		

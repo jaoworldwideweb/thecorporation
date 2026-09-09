@@ -39,16 +39,10 @@ public class GameControllerScript : MonoBehaviour{
 	public UITextObject boxInformation;
 	public UITextObject roomInformation;
 	public int maxBoxes = 9;
-	[SerializeField] private FullObject boxViewmodel;
-	[SerializeField] private Vector3 boxViewmodelFinalPoint;
-	[SerializeField] private float boxViewmodelBobSpeed;
-	
 	[HideInInspector] public int collectedBoxes = 0;
 	[HideInInspector] public Box currentBoxData;
 	[HideInInspector] public BoxColor roomColor = BoxColor.Red;
-	[HideInInspector] public bool isHoldingBox = false;
-	private float boxViewmodelBobTime;
-	private float boxViewmodelBobAmount;	
+	[HideInInspector] public bool isHoldingBox = false;	
 	
 	[Header("Exit")]
 	[SerializeField] private EntranceScript entrance;
@@ -232,29 +226,6 @@ public class GameControllerScript : MonoBehaviour{
 		yield return obj.MoveObject(target, CommonMath.EaseOutCubic, time);
 	}
 	
-	// ???
-	private void BobBox(){
-		float targetAmount = playerScript.isMoving ? 1f : 0f;
-		boxViewmodelBobAmount = Mathf.Lerp(boxViewmodelBobAmount, targetAmount, Time.deltaTime * 8f);
-
-		if(playerScript.isMoving){
-			boxViewmodelBobTime += Time.deltaTime * boxViewmodelBobSpeed;
-			
-			if(!boxViewmodel.isInState){
-				boxViewmodel.isInState = true;
-			}
-		}
-		else if(boxViewmodel.isInState){
-			boxViewmodel.isInState = false;
-			boxViewmodelBobTime = 0f;
-		}
-
-		float wave = (Mathf.Sin(boxViewmodelBobTime) + 1f) * 0.5f;
-
-		Vector3 bobTarget = Vector3.Lerp(boxViewmodel.oldTransform, boxViewmodelFinalPoint, wave);
-		boxViewmodel.obj.transform.localPosition = Vector3.Lerp(boxViewmodel.oldTransform, bobTarget, boxViewmodelBobAmount);
-	}
-		
 	public void CollectBox(){
 		if(isHoldingBox){
 			return;
