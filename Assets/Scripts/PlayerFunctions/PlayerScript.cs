@@ -6,10 +6,13 @@ using GeneralLibrary;
 using MathLibrary;
 using GameLibrary;
 
+[System.Serializable]
 public class FilmCamera{
-	public Camera camera;
-	public Light light;
+	public Transform camera;
+	public Transform light;
 }
+
+// korrekt schnitzel!!!
 
 public class PlayerScript : MonoBehaviour{
 #region Inspector
@@ -26,10 +29,7 @@ public class PlayerScript : MonoBehaviour{
 	
 	[Header("Main")]
 	[SerializeField] private CharacterController characterController;
-	[SerializeField] private Transform mainCameraTransform;
-	[SerializeField] private Transform backCameraTransform;
-	[SerializeField] private Transform mainFlashlightTransform;
-	[SerializeField] private Transform backFlashlightTransform;
+	[SerializeField] private FilmCamera[] cameras;
 	[SerializeField] private float mouseSensitivity = 100f;
 	[SerializeField] private float walkSpeed = 15f;
 	[HideInInspector] public bool isMoving = false;
@@ -41,7 +41,7 @@ public class PlayerScript : MonoBehaviour{
 	private const float gravity = -9;
 	
 	[Header("Viewmodel")]
-	[SerializeField] private FullObject boxViewmodel;
+	public FullObject boxViewmodel; // { get; private set; }
 
 	[Header("Stamina")]
 	public float stamina;
@@ -64,23 +64,9 @@ public class PlayerScript : MonoBehaviour{
 		stamina = maxStamina;
 		health = maxHealth;
 		
-		StartCoroutine(BobBoxViewmodel(boxViewmodel, new Vector3(0,0,0), 2f, 2f, HighMath.pi)); // input later
-		
-		/*
-		
-		might keep this but idk
-		
-		if (staminaBar != null){
-			staminaBar.minValue = 0f;
-			staminaBar.maxValue = 1f;
-			staminaBar.value = 1f;
-		}
-		
-		if (healthBar != null){
-			healthBar.minValue = 0f;
-			healthBar.maxValue = 1f;
-			healthBar.value = 1f;
-		}*/
+		boxViewmodel.obj.SetActive(false);
+		boxViewmodel.SetOldTransform();
+		StartCoroutine(BobBoxViewmodel(boxViewmodel, new Vector3(0f, 0.25f, 0f), 2f, 2f, HighMath.pi));
 	}
 	
 	private void Update(){
@@ -96,10 +82,9 @@ public class PlayerScript : MonoBehaviour{
 		}
 		
 		// visual
-		CameraMove();
-		FlashlightMove(mainCameraTransform, mainFlashlightTransform, 9f);
-		FlashlightMove(backCameraTransform, backFlashlightTransform, 9f);
-		BobBox();
+		MoveCamera();
+		FlashlightMove(cameras[0], 9f);
+		FlashlightMove(cameras[1], 9f);
 		
 		// movement
 		PlayerMove();
@@ -113,7 +98,7 @@ public class PlayerScript : MonoBehaviour{
 
 #region FootstepFunctions
 	private void HandleFootsteps(){
-		if (isMoving && !gameController.isGamePaused && Time.timeScale == 0f){
+		if (isMoving && !gameController.isGamePaused){
 			footstepTimer -= Time.deltaTime;
 			if (footstepTimer <= 0f){
 				UpdateFloorType();
@@ -154,31 +139,32 @@ public class PlayerScript : MonoBehaviour{
 				return footstepSound;
 			}
 		}
+		
 		return null;
 	}
 #endregion
 
 #region MovementFunctions
-	private void CameraMove(){
+	private void MoveCamera(){
 		float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
 		float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 		
 		rotation -= mouseY;
 		rotation = Mathf.Clamp(rotation, -90f, 90f);
 		
-		mainCameraTransform.localRotation = Quaternion.Euler(rotation, 0f, 0f);
+		cameras[0].camera.localRotation = Quaternion.Euler(rotation, 0f, 0f);
 		transform.Rotate(0f, mouseX, 0f);
 	}
 	
 	private IEnumerator BobBoxViewmodel(FullObject obj, Vector3 targetPosition, float amount, float speed, float time){
 		while (true){
-			float targetAmount = playerScript.isMoving ? 1f : 0f;
+			float targetAmount = isMoving ? 1f : 0f;
 			float bobAmount = Mathf.Lerp(amount, targetAmount, Time.deltaTime * 8f); // why 8f? i forgot.
 			
-			if (playerScript.isMoving){
+			if(isMoving && gameController.isHoldingBox){
 				time += Time.deltaTime * speed;
 				
-				float wave = (Mathf.Sin(boxViewmodelBobTime) + 1f) * 0.5f;
+				float wave = (Mathf.Sin(time) + 1f) * 0.5f;
 				
 				Vector3 bobTarget = Vector3.Lerp(boxViewmodel.oldTransform, targetPosition, wave);
 				boxViewmodel.obj.transform.localPosition = Vector3.Lerp(boxViewmodel.oldTransform, bobTarget, amount);
@@ -188,9 +174,13 @@ public class PlayerScript : MonoBehaviour{
 		}
 	}
 	
-	private void FlashlightMove(Transform camera, Transform flashlight, float smoothness){
-		flashlight.position = Vector3.Lerp(flashlight.position, camera.position, smoothness * Time.deltaTime);
-		flashlight.rotation = Quaternion.Slerp(flashlight.rotation, camera.rotation, smoothness * Time.deltaTime);
+	private void FlashlightMove(FilmCamera filmCamera, float smoothness){
+		Transform cameraTransform = filmCamera.camera;
+		Transform lightTransform = filmCamera.light;
+		float t = smoothness * Time.deltaTime;
+		
+		lightTransform.position = Vector3.Lerp(lightTransform.position, cameraTransform.position, t);
+		lightTransform.rotation = Quaternion.Slerp(lightTransform.rotation, cameraTransform.rotation, t);
 	}
 	
 	private Vector3 GetMovementInput(){
@@ -336,7 +326,7 @@ public class PlayerScript : MonoBehaviour{
 		float elapsedTime = time;
 		float damage = UnityEngine.Random.Range(1.5f, 4.5f);
 		
-		while(elapsedTime <= 0f){
+		while(elapsedTime > 0f){
 			float damageRate = isRunning ? 2f : 1f;
 			health -= (damage * damageRate) * Time.deltaTime;
 			elapsedTime -= Time.deltaTime;

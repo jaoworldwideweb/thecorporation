@@ -17,7 +17,7 @@ public class GameControllerScript : MonoBehaviour{
 	[Header("Player")]
 	public Transform playerTransform;
 	[SerializeField] private Camera[] sceneCameras;
-	[SerializeField] private Camera playerCamera;
+	public Camera playerCamera;
 	
 	[Header("NPCs")]
 	[SerializeField] private GameObject[] npcObjects;
@@ -65,8 +65,8 @@ public class GameControllerScript : MonoBehaviour{
 		currentBoxData.ClearData();
 		
 		boxCounter.text = UpdateBoxCount();
-		boxViewmodel.obj.SetActive(false);
-		boxViewmodel.SetOldTransform();
+		playerScript.boxViewmodel.obj.SetActive(false);
+		playerScript.boxViewmodel.SetOldTransform();
 		boxInformation.SetOldTransform();
 		
 		soundHandler.PlayMusicFromList(musicTracks);
@@ -93,8 +93,6 @@ public class GameControllerScript : MonoBehaviour{
 			return;
 		}
 		
-		BobBox();
-		
 		// input
 		General.DoActionFromInput(itemHandler.SetItemSelection, InputAction.Slot0, 0);
 		General.DoActionFromInput(itemHandler.SetItemSelection, InputAction.Slot1, 1);
@@ -105,12 +103,12 @@ public class GameControllerScript : MonoBehaviour{
 		
 		// raycast
 		General.DoRaycastForObject(hit =>{
-			BoxScript boxViewmodel = hit.transform.GetComponent<BoxScript>();
+			BoxScript box = hit.transform.GetComponent<BoxScript>();
 			
-			if (boxViewmodel == null){
+			if (box == null){
 				return;			
 			}
-			boxViewmodel.Collect();			
+			box.Collect();			
 		}, playerCamera, playerTransform, 40f);
 		
 		General.DoRaycastForObject(hit =>{
@@ -238,7 +236,7 @@ public class GameControllerScript : MonoBehaviour{
 		}
 		
 		soundHandler.PlaySound(grabBoxSound, 0);
-		boxViewmodel.obj.SetActive(true);
+		playerScript.boxViewmodel.obj.SetActive(true);
 	}
 	
 	public void PutBoxInPlace(){
@@ -269,7 +267,7 @@ public class GameControllerScript : MonoBehaviour{
 		}
 		
 		soundHandler.PlaySound(dropBoxSound, 0);		
-		boxViewmodel.obj.SetActive(false);
+		playerScript.boxViewmodel.obj.SetActive(false);
 		
 		if(!hasGameStarted){
 			if(collectedBoxes > 1){

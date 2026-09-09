@@ -174,7 +174,7 @@ namespace GameLibrary{
 		public Vector3 left;
 		public Vector3 right;
 		
-		public DirectionVector2(Vector3 up, Vector3 down, Vector3 left, Vector3 right){
+		public DirectionVector3(Vector3 up, Vector3 down, Vector3 left, Vector3 right){
 			this.up = up;
 			this.down = down;
 			this.left = left;
