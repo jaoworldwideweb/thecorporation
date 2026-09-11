@@ -38,7 +38,7 @@ public class PlayerScript : MonoBehaviour{
 	private float rotation;
 	private float playerSpeed;	
 	private float verticalVelocity;
-	private const float gravity = -9;
+	private const float GRAVITY = -9;
 	
 	[Header("Viewmodel")]
 	public FullObject boxViewmodel; // { get; private set; }
@@ -66,7 +66,7 @@ public class PlayerScript : MonoBehaviour{
 		
 		boxViewmodel.obj.SetActive(false);
 		boxViewmodel.SetOldTransform();
-		StartCoroutine(BobBoxViewmodel(boxViewmodel, new Vector3(0f, 0.25f, 0f), 2f, 2f, HighMath.pi));
+		StartCoroutine(BobBoxViewmodel(boxViewmodel, new Vector3(0f, 0.25f, 0f), 2f, 2f, HighMath.PI));
 	}
 	
 	private void Update(){
@@ -221,7 +221,7 @@ public class PlayerScript : MonoBehaviour{
 			verticalVelocity = -2f;			
 		}
 		
-		verticalVelocity += gravity * Time.deltaTime;
+		verticalVelocity += GRAVITY * Time.deltaTime;
 		finalMove.y = verticalVelocity;
 		
 		characterController.Move(finalMove * Time.deltaTime);

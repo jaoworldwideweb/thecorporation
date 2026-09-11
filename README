@@ -1,9 +1,17 @@
-THIS IS STILL IN DEVELOPENT! CODE MAY NOT BE FULL OPTIMIZED!
+"the corporation" source code
+=============================
 
-"the corporation" source project. use unity 2020.3.49f1.
+a very modified copy of the "baldi's basics open source tool". made with pure performace and system compatibility. 
 
-using the PSPLeafFox Baldi decompile as the main base. with major refactoring of main program files.
+essentials
+-----------------------
 
-this project is under the Open Source Baldi License.
+all users should be familiar with unity.
 
-and yes i know this is public, i just want yall to see
+* requirements:
+	- a good text editor (vs codium, notepad++, vim, emacs, etc)
+	- medium knowledge of c# and mathematical algorithims
+
+============
+
+this project is under the "PolyForm Noncommercial 1.0.0' license

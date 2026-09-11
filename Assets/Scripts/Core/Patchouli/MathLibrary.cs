@@ -96,6 +96,18 @@ namespace MathLibrary{
 		public static float Negative(float input) => input > 0f ? input - (input * 2) : input;
 	#endregion
 	
+	#region BitOperations
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe float Int32BitsToSingle(int bits){
+			return *(float*)&bits;
+		}
+		
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static unsafe int SingleToInt32Bits(float value){
+			return *(int*)&value;
+		}
+	#endregion
+	
 	#region EaseFunctions
 		public delegate float EaseFunction(float t);
 		
@@ -124,75 +136,27 @@ namespace MathLibrary{
 		public static float EaseInExpo(float t) => t <= 0f ? 0f : HighMath.ComplexAproximatePower(2f, (int)(10f * (t - 1f)));
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static float EaseInOutSine(float t) => -(HighMath.Cosine(HighMath.pi * t) - 1f) * 0.5f;
+		public static float EaseInOutSine(float t) => -(HighMath.Cosine(HighMath.PI * t) - 1f) * 0.5f;
 	#endregion
 	}
 	
 	public static class HighMath{
 	#region MathConstants
-		private const float ln2 = 0.6931471805599453f;
-		private const float invLn2 = 1.4426950408889634f;
-		public const float pi = 3.14159265358979323846f;
+		private const float LN2 = 0.6931471805599453f;
+		private const float INV_LN2 = 1.4426950408889634f;
+		public const float PI = 3.14159265358979323846f;
 		
-		private const float b = 4f / pi;
-		private const float c = -4f / (pi * pi);
-		private const float p = 0.225f;
+		private const float B = 4f / PI;
+		private const float C = -4f / (PI * PI);
+		private const float P = 0.225f;
 	#endregion
 	
+	#region BasicFunctions
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float Square(float input) => input * input;
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float Cube(float input) => input * input * input;
-		
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static float Exponent(float input){
-			if (input == 0f){
-				return 1f;
-			}
-			
-			int whole = (int)input;
-			float frac = input - whole;
-			float fracExp = 1f + frac + Square(frac) * 0.5f + Cube(frac) * (1f / 6f) + CalculatePower(frac, 4) * (1f / 24f) + CalculatePower(frac, 5) * (1f / 120f); // taylor
-
-			return fracExp * CalculatePower(2f, (int)(whole * invLn2));
-		}
-		
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static float Log(float input){
-			if (input <= 0f){
-				return float.NaN;
-			}
-			
-			float y = 0f;
-			
-			while (input > 2f){
-				input *= 0.5f;
-				y += ln2;
-			}
-			while (input < 1f){
-				input *= 2f;
-				y -= ln2;
-			}
-			
-			// taylor too
-			float z = input - 1f;
-			float z2 = Square(z);
-			float z3 = z2 * z;
-			float z4 = z3 * z;
-			float z5 = z4 * z;
-
-			return y + z - z2 * 0.5f + z3 / 3f - z4 * 0.25f + z5 * 0.2f;
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static float ComplexAproximatePower(float value, float exponent){
-			if (value <= 0f){
-				return 0f;
-			}
-
-			return Exponent(exponent * Log(value));
-		}
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float CalculatePower(float input, int exponent){
@@ -209,7 +173,9 @@ namespace MathLibrary{
 			return result;
 		}
 		
-		// quake 3 fstinvsqrt my beloved <3
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float Root(float input) => input * InvSqrt(input);
+		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static unsafe float InvSqrt(float input){
 			float xHalf = 0.5f * input;
@@ -222,16 +188,74 @@ namespace MathLibrary{
 			
 			return input;
 		}
+	#endregion
+	
+	#region HighMath
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float Exponent(float input){
+			if (input == 0f){
+				return 1f;
+			}
+			
+			int k = (int)(input * INV_LN2 + (input >= 0f ? 0.5f : -0.5f));
+			float r = input - k * LN2;
+			
+			float rExp = 1f + r * (1f + r * (0.5f + r * (0.16666667f + r * (0.04166667f + r * 0.00833333f))));
+			
+			if (k < -126){
+				return 0f;
+			}
+			
+			if (k > 127){
+				return float.PositiveInfinity;
+			}
+			
+			int bits = (k + 127) << 23;
+			float twoToK = CommonMath.Int32BitsToSingle(bits);
+			return rExp * twoToK;
+		}
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static float Root(float input) => input * InvSqrt(input);
-		
+		public static float Log(float input){
+			if (input <= 0f){
+				return float.NaN;
+			}
+			
+			int bits = CommonMath.SingleToInt32Bits(input);
+			int exponent = ((bits >> 23) & 255) - 127;
+			
+			int mantissaBits = (bits & 0x007FFFFF) | (127 << 23);
+			float mantissa = CommonMath.Int32BitsToSingle(mantissaBits);
+			
+			if (mantissa > 1.41421356f){
+				mantissa *= 0.5f;
+				exponent++;
+			}
+
+			float z = mantissa - 1f;
+			float logMantissa = z * (1f - z * (0.5f - z * (0.33333333f - z * (0.25f - z * 0.2f))));
+
+			const float LN2 = 0.69314718f;
+			return logMantissa + exponent * LN2;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float ComplexAproximatePower(float value, float exponent){
+			if (value <= 0f){
+				return 0f;
+			}
+
+			return Exponent(exponent * Log(value));
+		}
+	#endregion
+	
+	#region Trig 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float Sine(float input){
-			input %= 2f * pi;
-			float y = b * input + c * input * MathLibrary.CommonMath.Absolute(input);
+			input %= 2f * PI;
+			float y = B * input + C * input * MathLibrary.CommonMath.Absolute(input);
 
-			return p * (y * MathLibrary.CommonMath.Absolute(y) - y) + y;
+			return P * (y * MathLibrary.CommonMath.Absolute(y) - y) + y;
 		}
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -243,5 +267,6 @@ namespace MathLibrary{
 		public static float Tangent(float input){
 			return Sine(input) / Cosine(input);
 		}
+	#endregion
 	}
 }
