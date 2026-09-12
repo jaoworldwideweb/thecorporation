@@ -151,6 +151,17 @@ namespace GameLibrary{
 		}
 	}
 	
+	[System.Serializable]
+	public struct MenuTransition{
+		public GameObject currentMenu;
+		public GameObject nextMenu;
+
+		public MenuTransition(GameObject currentMenu, GameObject nextMenu){
+			this.currentMenu = currentMenu;
+			this.nextMenu = nextMenu;
+		}
+	}
+	
 	// this is so bad.
 	[System.Serializable]
 	public struct DirectionVector2{

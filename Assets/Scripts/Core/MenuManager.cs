@@ -19,8 +19,7 @@ public class MenuManager : MonoBehaviour{
 	
 	[Header("Sound Handler")]
 	[SerializeField] private SoundHandler soundHandler;
-	[SerializeField] private AudioClip ambience;
-	[SerializeField] private AudioClip loadSound;
+	[SerializeField] private AudioClip music;
 	
 	[Header("Charcter")]
 	[SerializeField] private EmployeeData currentEmployee;
@@ -28,21 +27,12 @@ public class MenuManager : MonoBehaviour{
 	
 	private Queue<MenuTransition> transitionQueue = new Queue<MenuTransition>();
 	private bool isProcessingQueue = false;
-	
-	private struct MenuTransition{
-		public GameObject CurrentMenu;
-		public GameObject NextMenu;
-
-		public MenuTransition(GameObject currentMenu, GameObject nextMenu){
-			CurrentMenu = currentMenu;
-			NextMenu = nextMenu;
-		}
-	}
+	private bool isChangingMenu = false;
 #endregion
 
 #region MainFunctions
 	private void Start(){
-		if (PlayerPrefs.HasKey("OptionsSet")){
+		if(!PlayerPrefs.HasKey("OptionsSet")){
 			staminaSlider.value = PlayerPrefs.GetFloat("MouseSensitivity");
 			PlayerPrefs.Save();
 		}
@@ -51,16 +41,21 @@ public class MenuManager : MonoBehaviour{
 			PlayerPrefs.Save();
 		}
 		
-		soundHandler.PlayMusic(ambience, MusicOutput.Ambience);
+		soundHandler.PlayMusic(music, MusicOutput.MainSong);
 		StartCoroutine(StartFadeIn());
+		staminaSlider.onValueChanged.AddListener(SetMouseSensitivity);
 	}
 	
 	private void Update(){
-		PlayerPrefs.SetFloat("MouseSensitivity", staminaSlider.value);
+		// nullpointer
 	}
 #endregion
 
 #region MenuCalls
+	private void SetMouseSensitivity(float value){
+		PlayerPrefs.SetFloat("MouseSensitivity", value);
+	}	
+	
 	private IEnumerator StartFadeIn(){
 		forgroundObject.SetActive(true);
 		yield return UserInterface.IFadeImage(foregroundImage, new dfloat(1f, 0f), 3f);
@@ -79,7 +74,6 @@ public class MenuManager : MonoBehaviour{
 		float waitTime = 2f;
 		
 		soundHandler.FadeMusic(3f, 0f, MusicOutput.Ambience, true);
-		soundHandler.PlayMusic(loadSound, MusicOutput.MainSong);
 		
 		forgroundObject.SetActive(true);
 		UserInterface.FadeImage(foregroundImage, new dfloat(0f, 1f), waitTime);
@@ -104,25 +98,30 @@ public class MenuManager : MonoBehaviour{
 	}
 	
 	public void SwitchMenus(GameObject currentMenu, GameObject nextMenu){
+		if(isChangingMenu){
+			return;
+		}
+		
+		isChangingMenu = true;
+		
 		transitionQueue.Enqueue(new MenuTransition(currentMenu, nextMenu));
 
 		if (!isProcessingQueue){
 			StartCoroutine(ProcessQueue());
 		}
 	}
-#endregion
-
-#region HelperFunctions
+	
 	private IEnumerator ProcessQueue(){
 		isProcessingQueue = true;
 		
 		while (transitionQueue.Count > 0){
 			MenuTransition transition = transitionQueue.Dequeue();
-			yield return StartCoroutine(SlowlySetObjectStates(false, transition.CurrentMenu));
-			yield return StartCoroutine(SlowlySetObjectStates(true, transition.NextMenu));
+			yield return StartCoroutine(SlowlySetObjectStates(false, transition.currentMenu));
+			yield return StartCoroutine(SlowlySetObjectStates(true, transition.nextMenu));
 		}
 
 		isProcessingQueue = false;
+		isChangingMenu = false;
 	}
 	
 	public IEnumerator SlowlySetObjectStates(bool isActive, GameObject mainObject){

@@ -224,6 +224,17 @@ namespace GeneralLibrary{
 			
 			material.SetFloat(fadeID, fade.b);
 		}
+		
+		public static void ResizeRenderTexture(dint screenSize, RenderTexture texture, Camera camera){
+			texture.Release();
+			texture.width = screenSize.a;
+			texture.height = screenSize.b;
+			texture.Create();
+			
+			if(camera.targetTexture == texture){
+				camera.aspect = (float)screenSize.a / (float)screenSize.b;
+			}
+		}
 	#endregion
 	
 	#region ObjectMovement	

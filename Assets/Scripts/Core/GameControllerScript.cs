@@ -33,6 +33,7 @@ public class GameControllerScript : MonoBehaviour{
 	[Header("User Interface")]
 	[SerializeField] private GameObject pauseMenu;
 	[SerializeField] private GameObject playerHUD;
+	[SerializeField] private RenderTexture cameraOutput;
 	
 	[Header("Box")]
 	[SerializeField] private TMP_Text boxCounter;
@@ -61,6 +62,13 @@ public class GameControllerScript : MonoBehaviour{
 
 #region MainFunctions
 	private void Start(){
+	#if UNITY_STANDALONE
+		int monitorWidth = Screen.currentResolution.width;
+		int monitorHeight = Screen.currentResolution.height;
+		
+		UserInterface.ResizeRenderTexture(new dint(monitorWidth, monitorHeight), cameraOutput, playerCamera);
+	#endif
+		
 		LockMouse();
 		currentBoxData.ClearData();
 		

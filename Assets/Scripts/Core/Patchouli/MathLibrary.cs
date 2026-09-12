@@ -46,12 +46,14 @@ namespace MathLibrary{
 	
 	[System.Serializable]
 	public struct dint{
-		public float a;
-		public float b;
-		private float memory;
+		public int a;
+		public int b;
+		private int memory;
 		
-		public dint(float a, float b){
-			this.a = a; this.b = b; this.memory = 0;
+		public dint(int a, int b){
+			this.a = a;
+			this.b = b;
+			this.memory = 0;
 		}
 		
 		// bools
@@ -60,17 +62,17 @@ namespace MathLibrary{
 		public bool isEqual() => a == b;
 		
 		// calculations
-		public float Sum() => a + b;
-		public float Multiply() => a * b;
+		public int Sum() => a + b;
+		public int Multiply() => a * b;
 		
-		public float Subtract(bool inv = false) => inv ? b - a : a - b;
-		public float Divide(bool inv = false) =>  inv ? b / a : a / b;
+		public int Subtract(bool inv = false) => inv ? b - a : a - b;
+		public int Divide(bool inv = false) =>  inv ? b / a : a / b;
 		
 		// operations
-		public void Store(float push) => memory = push;
-		public float Get() => memory;
+		public void Store(int push) => memory = push;
+		public int Get() => memory;
 		
-		public void Push(ref float point) => point = memory;
+		public void Push(ref int point) => point = memory;
 		public void Clear(bool full = false){
 			a = 0;
 			b = 0;
@@ -87,6 +89,7 @@ namespace MathLibrary{
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static int CalculatePercentage(int current, int max) => (int)System.Math.Round((float)current / max * 100f);
 		
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static int GetRandom() => UnityEngine.Random.Range(int.MinValue , int.MaxValue);
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -259,14 +262,10 @@ namespace MathLibrary{
 		}
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static float Cosine(float input){
-			return Sine(input + 1.5707963267948966f);
-		}
+		public static float Cosine(float input) => Sine(input + 1.5707963267948966f);
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static float Tangent(float input){
-			return Sine(input) / Cosine(input);
-		}
+		public static float Tangent(float input) => Sine(input) / Cosine(input);
 	#endregion
 	}
 }
