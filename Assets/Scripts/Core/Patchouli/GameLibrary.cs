@@ -75,7 +75,7 @@ namespace GameLibrary{
 
 #region GameObjects
 	[System.Serializable]
-	public class UIObject{
+	public class UserInterfaceObject{
 		public GameObject obj;
 		public RectTransform rectTransform;
 		public Vector2 oldRectTransform = new Vector2(0f, 0f);
@@ -87,6 +87,10 @@ namespace GameLibrary{
 			oldRectTransform = rectTransform.anchoredPosition;
 		}
 		
+		public Vector2 GetDirection(Direction direction){
+			return directions.GetDirection(direction);
+		}
+		
 		public IEnumerator MoveObject(Vector2 targetPosition, CommonMath.EaseFunction easing, float time = 1f){
 			if(isMoving){
 				yield break;
@@ -96,29 +100,11 @@ namespace GameLibrary{
 			yield return UserInterface.MoveObject(rectTransform, targetPosition, easing, time);
 			isMoving = false;
 		}
-		
-		public Vector2 GetDirectionVector(Direction direction){
-			switch(direction){
-				case Direction.Up:
-					return directions.up;
-				
-				case Direction.Down:
-					return directions.down;
-				
-				case Direction.Left:
-					return directions.left;
-				
-				case Direction.Right:
-					return directions.right;
-			}
-			
-			return Vector2.zero;
-		}
 	}
 	
 	[System.Serializable]
-	public class UITextObject : UIObject{
-		public TMP_Text objText;
+	public class UserInterfaceTextObject : UserInterfaceObject{
+		public TMP_Text tmpText;
 	}
 
 	[System.Serializable]
@@ -139,10 +125,10 @@ namespace GameLibrary{
 				return;
 			}
 			
-			currentAction = CoroutineRunner.Instance.StartCoroutine(IEnumeratorMoveObject(targetPosition, easing, time));
+			currentAction = Singleton<MonoPuppet>.Instance.StartCoroutine(IMoveObject(targetPosition, easing, time));
 		}
 		
-		private IEnumerator IEnumeratorMoveObject(Vector3 targetPosition, CommonMath.EaseFunction easing, float time = 1f){
+		private IEnumerator IMoveObject(Vector3 targetPosition, CommonMath.EaseFunction easing, float time = 1f){
 			isMoving = true;
 			yield return UserInterface.Move3DObject(obj.transform, targetPosition, easing, time);
 			isMoving = false;
@@ -176,6 +162,17 @@ namespace GameLibrary{
 			this.left = left;
 			this.right = right;
 		}
+		
+		public Vector2 GetDirection(Direction direction){
+			switch(direction){
+				case Direction.Up: return up;
+				case Direction.Down: return down;
+				case Direction.Left: return left;
+				case Direction.Right: return right; 
+			}
+			
+			return Vector2.zero;
+		}
 	}
 	
 	[System.Serializable]
@@ -190,6 +187,17 @@ namespace GameLibrary{
 			this.down = down;
 			this.left = left;
 			this.right = right;
+		}
+		
+		public Vector2 GetDirection(Direction direction){
+			switch(direction){
+				case Direction.Up: return up;
+				case Direction.Down: return down;
+				case Direction.Left: return left;
+				case Direction.Right: return right; 
+			}
+			
+			return Vector2.zero;
 		}
 	}
 #endregion

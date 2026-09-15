@@ -18,10 +18,10 @@ RenderSettings:
   m_Fog: 1
   m_FogColor: {r: 0, g: 0, b: 0, a: 1}
   m_FogMode: 2
-  m_FogDensity: 0.02
+  m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.08, g: 0.07358491, b: 0.07358491, a: 1}
+  m_AmbientSkyColor: {r: 0.08, g: 0.075921565, b: 0.075921565, a: 1}
   m_AmbientEquatorColor: {r: 0.33962262, g: 0.33962262, b: 0.33962262, a: 1}
   m_AmbientGroundColor: {r: 0.047169805, g: 0.047169805, b: 0.047169805, a: 1}
   m_AmbientIntensity: 1
@@ -80096,7 +80096,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &463384165
 Transform:
   m_ObjectHideFlags: 0
@@ -80106,7 +80106,7 @@ Transform:
   m_GameObject: {fileID: 463384164}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 5, y: 5, z: 10}
-  m_LocalScale: {x: 5, y: 10.089999, z: 5}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_Children:
   - {fileID: 1487332638}
   m_Father: {fileID: 1739514709}
@@ -80125,7 +80125,7 @@ AudioSource:
     type: 2}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -80224,24 +80224,17 @@ MonoBehaviour:
   agent: {fileID: 463384168}
   wanderer: {fileID: 1206274234}
   playerScript: {fileID: 9144439427207363212}
-  moveDelay: 3
-  moveWaitTime: 3
-  moveSpeed: 75
-  speedScale: 0.65
-  coolDown: 0
-  moveFrames: 10
-  previous: {x: 0, y: 0, z: 0}
-  player: {fileID: 9144439427207344173}
-  anger: 0
-  angerRate: 0.01
-  angerRateRate: 0.00025
-  angerFrequency: 1
-  temporaryAnger: 0
-  currentPriority: 0
-  antiHearing: 0
-  antiHearingTime: 0
-  audioOutput: {fileID: 0}
-  moveSound: {fileID: 0}
+  sightRange: 50
+  sightAngle: 90
+  eyeHeight: 2
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 513
+  audioOutput: {fileID: 463384166}
+  seeSounds:
+  - {fileID: 8300000, guid: c35e2b573629d7f49a064445860c1994, type: 3}
+  - {fileID: 8300000, guid: dd92505354d994d4384dabbc9b700471, type: 3}
+  - {fileID: 8300000, guid: 642dd5a4a15a9f24d9877a4f4decbfc2, type: 3}
 --- !u!195 &463384168
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -80252,10 +80245,10 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 0
-  m_Acceleration: 10000
+  m_Speed: 50
+  m_Acceleration: 50
   avoidancePriority: 50
-  m_AngularSpeed: 2160
+  m_AngularSpeed: 50
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
@@ -261830,7 +261823,7 @@ GameObject:
   - component: {fileID: 1487332640}
   - component: {fileID: 1487332639}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -261844,8 +261837,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1487332637}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0.85, z: 0}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 0.2}
   m_Children: []
   m_Father: {fileID: 463384165}
   m_RootOrder: 0
@@ -261881,7 +261874,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 81f6d59b12104f04ab06b2346b763191, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -261902,7 +261895,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: dd1465ed649305d48b2e6fdfec30f255, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 368e4f0455b2daf45a244317c6e5af1b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -277209,7 +277202,7 @@ MonoBehaviour:
       right: {x: 0, y: 0}
     isMoving: 0
     isInState: 0
-    objText: {fileID: 9178493180482062552}
+    tmpText: {fileID: 0}
   roomInformation:
     obj: {fileID: 1826766354}
     rectTransform: {fileID: 1826766355}
@@ -277221,7 +277214,7 @@ MonoBehaviour:
       right: {x: 0, y: 0}
     isMoving: 0
     isInState: 0
-    objText: {fileID: 1020516304}
+    tmpText: {fileID: 0}
   maxBoxes: 9
   collectedBoxes: 0
   currentBoxData:

@@ -11,7 +11,9 @@ namespace MathLibrary{
 		private unsafe float memory;
 		
 		public unsafe dfloat(float a, float b){
-			this.a = a; this.b = b; this.memory = 0f;
+			this.a = a;
+			this.b = b;
+			this.memory = 0f;
 		}
 		
 		// bools
@@ -80,6 +82,17 @@ namespace MathLibrary{
 				return;
 			}
 			memory = 0;
+		}
+	}
+	
+	[System.Serializable]
+	public struct dVector3{
+		public Vector3 a;
+		public Vector3 b;
+		
+		public dVector3(Vector3 a, Vector3 b){
+			this.a = a;
+			this.b = b;
 		}
 	}
 #endregion

@@ -34,8 +34,6 @@ public class IntroShowcaseHandler : MonoBehaviour{
 
 #region MainFunctions
 	private void Start(){
-		outputImage.material = new Material(outputImage.material);
-		
 		int gamesStarted = PlayerPrefs.GetInt("GamesStarted", 0) + 1;
 		
 		PlayerPrefs.SetInt("GamesStarted", gamesStarted);
@@ -75,8 +73,6 @@ public class IntroShowcaseHandler : MonoBehaviour{
 	}
 	
 	private IEnumerator ShowcaseLoop(){
-		outputImage.material.SetFloat("_Fade", 0f);
-		
 		foreach(Logo logo in logos){
 			yield return TransitionTo(logo, 1.5f);
 			yield return new WaitForSeconds(logo.displayTime);

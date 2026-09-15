@@ -25,6 +25,7 @@ public class HumanoidKiller : Character{
 		if (Vector3.Distance(playerTransform.position, gameObject.transform.position) > 20f){
 			return false;
 		}
+		
 		return true;
 	}
 #endregion

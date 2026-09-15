@@ -37,8 +37,8 @@ public class GameControllerScript : MonoBehaviour{
 	
 	[Header("Box")]
 	[SerializeField] private TMP_Text boxCounter;
-	public UITextObject boxInformation;
-	public UITextObject roomInformation;
+	public UserInterfaceTextObject boxInformation;
+	public UserInterfaceTextObject roomInformation;
 	public int maxBoxes = 9;
 	[HideInInspector] public int collectedBoxes = 0;
 	[HideInInspector] public Box currentBoxData;
@@ -62,7 +62,7 @@ public class GameControllerScript : MonoBehaviour{
 
 #region MainFunctions
 	private void Start(){
-	#if UNITY_STANDALONE
+	#if UNITY_STANDALONE && !UNITY_EDITOR
 		int monitorWidth = Screen.currentResolution.width;
 		int monitorHeight = Screen.currentResolution.height;
 		
@@ -106,8 +106,8 @@ public class GameControllerScript : MonoBehaviour{
 		General.DoActionFromInput(itemHandler.SetItemSelection, InputAction.Slot1, 1);
 		General.DoActionFromInput(itemHandler.UseItem, InputAction.UseItem);
 		
-		PanelToggle(() => boxInformation.objText.text = currentBoxData.GetFormatted(), isHoldingBox, boxInformation, InputAction.Tab);
-		PanelToggle(() => roomInformation.objText.text = GetFormattedRoomName(), isInsideRoomTrigger, roomInformation, InputAction.Q);
+		PanelToggle(() => boxInformation.tmpText.text = currentBoxData.GetFormatted(), isHoldingBox, boxInformation, InputAction.Tab);
+		PanelToggle(() => roomInformation.tmpText.text = GetFormattedRoomName(), isInsideRoomTrigger, roomInformation, InputAction.Q);
 		
 		// raycast
 		General.DoRaycastForObject(hit =>{
@@ -162,8 +162,6 @@ public class GameControllerScript : MonoBehaviour{
 			pauseMenu.SetActive(true);
 		}
 	}
-	
-
 #endregion
 	
 #region GameStateFunction
@@ -178,10 +176,7 @@ public class GameControllerScript : MonoBehaviour{
 		entrance.wallAction(EntranceScript.wallState.raiseWall);
 	}
 	
-	public void ExitGame(){
-		// Time.timeScale = 1f; // why
-		SceneManager.LoadScene(exitGameScene);
-	}
+	public void ExitGame() => SceneManager.LoadScene(exitGameScene);
 #endregion
 	
 #region GameOverFunctions
@@ -204,11 +199,10 @@ public class GameControllerScript : MonoBehaviour{
 #endregion
 	
 #region BoxFunctions
-	// this block of code makes me go insane every day.
  	private string UpdateBoxCount() => $"{General.ReadOutNumber(collectedBoxes)} out of {General.ReadOutNumber(maxBoxes)} boxes.";
 	public string GetFormattedRoomName() => $"You are in the {General.GetFormattedColor(roomColor).ToLower()} room";
 	
-	public void PanelToggle(Action function, bool check, UITextObject obj, InputAction input, float time = 0.45f){
+	public void PanelToggle(Action function, bool check, UserInterfaceTextObject obj, InputAction input, float time = 0.45f){
 		if (!Singleton<InputManager>.Instance.GetActionKeyDown(input) || isGameOver || isGamePaused){
 			return;
 		}
@@ -222,12 +216,12 @@ public class GameControllerScript : MonoBehaviour{
 		StartCoroutine(IMoveInfoPanel(function, check, direction, obj, time));
 	}
 	
-	public IEnumerator IMoveInfoPanel(Action function, bool check, Direction direction, UITextObject obj, float time = 0.45f){
+	public IEnumerator IMoveInfoPanel(Action function, bool check, Direction direction, UserInterfaceTextObject obj, float time = 0.45f){
 		if (!check){
 			yield break;
 		}
 		
-		Vector2 target = obj.GetDirectionVector(direction);
+		Vector2 target = obj.GetDirection(direction);
 		function();
 		yield return obj.MoveObject(target, CommonMath.EaseOutCubic, time);
 	}
@@ -264,14 +258,14 @@ public class GameControllerScript : MonoBehaviour{
 		if(boxInformation.isInState){
 			StartCoroutine(
 				IMoveInfoPanel(
-					() => boxInformation.objText.text = currentBoxData.GetFormatted(),
+					() => boxInformation.tmpText.text = currentBoxData.GetFormatted(),
 					isHoldingBox,
 					Direction.Down,
 					boxInformation
 				)
 			);
 			
-			boxInformation.objText.text = null;
+			boxInformation.tmpText.text = null;
 		}
 		
 		soundHandler.PlaySound(dropBoxSound, 0);		

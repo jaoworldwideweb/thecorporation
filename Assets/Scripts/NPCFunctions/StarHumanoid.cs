@@ -1,177 +1,149 @@
-using UnityEngine;
-using UnityEngine.AI;
 using System;
 using System.Collections;
+using UnityEngine;
+using UnityEngine.AI;
+using MathLibrary;
+using GeneralLibrary;
 
 public class StarHumanoid : Character{
 #region Inspector
-	[Header("Scripts")]
+	[Header("Player")]
 	[SerializeField] private PlayerScript playerScript;
+	private Transform playerTransform;
 	
-	[Header("Movement")]
-	[SerializeField] private float moveDelay = 3f;
-	[SerializeField] private float moveWaitTime = 3f;
-	[SerializeField] private float moveSpeed = 75f;
-	[SerializeField] private float speedScale = 0.65f;
-	[SerializeField] private float coolDown = 0f;
-	[SerializeField] private float moveFrames = 10f;
-	[SerializeField] private Vector3 previous;
-	[SerializeField] private Transform player;
-
-	[Header("AI")]
-	[SerializeField] private float anger = 0f;
-	[SerializeField] private float angerRate = 0.01f;
-	[SerializeField] private float angerRateRate = 0.00025f;
-	[SerializeField] private float angerFrequency = 1f;
-	[SerializeField] private float temporaryAnger = 0f;
-	[SerializeField] private int currentPriority = 0;
-	[SerializeField] private bool antiHearing = false;
-	[SerializeField] private float antiHearingTime = 0f;
-
-	[Header("Audio")]
+	[Header("Vision")]
+	[SerializeField] private float sightRange = 50f;
+	[SerializeField] private float sightAngle = 90f;
+	[SerializeField] private float eyeHeight = 2f;
+	[SerializeField] private LayerMask targetMask;
+	
+	[Header("Sprites")]
+	[SerializeField] private SpriteRenderer spriteOutput;
+	[SerializeField] private Sprite[] movementSprite;
+	
+	[Header("Sounds")]
 	[SerializeField] private AudioSource audioOutput;
-	[SerializeField] private AudioClip moveSound;
-	
-	private Coroutine moveRoutine;
+	[SerializeField] private AudioClip[] seeSounds;
+	private bool chasing;
 #endregion
 
 #region MainFunctions
-	protected override void Awake(){
+	private void Awake(){
 		base.Awake();
-		audioOutput = GetComponent<AudioSource>();
 	}
-
+	
 	private void Start(){
-		Wander();
-
-		moveRoutine = StartCoroutine(SlapRoutine(moveDelay));
-
-		StartCoroutine(CooldownRoutine());
-		StartCoroutine(TempAngerRoutine());
-		StartCoroutine(AntiHearingRoutine());
-	}
-
-	private void FixedUpdate(){
-		if (moveFrames > 0f){
-			moveFrames--;
-			agent.speed = moveSpeed;
-		}
-		else{
-			agent.speed = 0f;
-		}
-
-		Vector3 direction = player.position - transform.position;
-		RaycastHit hit;
-
-		if (Physics.Raycast(transform.position + Vector3.up * 2f, direction, out hit, Mathf.Infinity, 769,QueryTriggerInteraction.Ignore) && hit.transform.CompareTag("Player")){ // worst line of code of all time
-			TargetPlayer();
-		}
-	}
-#endregion
-
-	private IEnumerator SlapRoutine(float delay){
-		while(true){
-			yield return new WaitForSeconds(delay);
-			Move();
-			delay = Mathf.Max(0.05f, moveWaitTime - temporaryAnger);
-		}
-	}
-
-	private IEnumerator CooldownRoutine(){
-		while(true){
-			if (coolDown > 0f){
-				coolDown -= Time.deltaTime;				
-			}
-			yield return null;
-		}
-	}
-
-	private IEnumerator TempAngerRoutine(){
-		while(true){
-			if (temporaryAnger > 0f){
-				temporaryAnger = Mathf.Max(0f, temporaryAnger - 0.02f * Time.deltaTime);				
-			}
-			yield return null;
-		}
-	}
-
-	private IEnumerator AntiHearingRoutine(){
-		while (true){
-			if (antiHearing){
-				antiHearingTime -= Time.deltaTime;
-
-				if (antiHearingTime <= 0f){
-					antiHearing = false;
-					antiHearingTime = 0f;
-				}
-			}
-			yield return null;
-		}
-	}
-
-	private IEnumerator EndlessRoutine(){
-		while(true){
-			yield return new WaitForSeconds(angerFrequency);
-			GetAngry(angerRate);
-			angerRate += angerRateRate;
-		}
-	}
-
-	private void Wander(){
+		playerTransform = playerScript.transform;
+		
+		StartCoroutine(SpriteChanger());
 		StartRoutine(WanderRoutine());
-		coolDown = 1f;
-		currentPriority = 0;
 	}
+	
+	private void Update(){
+		SpriteChanger();
+		
+		if(!chasing){
+			if(canSeePlayer()){
+				StartChasing();
+			}
 
-	public void TargetPlayer(){
-		Follow(player);
-		coolDown = 1f;
-		currentPriority = 0;
-	}
-
-	private void Move(){
-		if (transform.position == previous && coolDown < 0f){
-			Wander();
-		}
-
-		moveFrames = 10f;
-		previous = transform.position;
-		audioOutput.PlayOneShot(moveSound);
-	}
-
-	public void GetAngry(float value){
-		anger += value;
-		if (anger < 0.5f){
-			anger = 0.5f;
+			return;
 		}
 		
-		moveWaitTime = -3f * anger / (anger + 2f / speedScale) + 3f;
+		if(canSeePlayer()){
+			return;
+		}
+		
+		StopChasing();
+	}
+	
+#endregion
 
-		if (moveRoutine != null){
-			StopCoroutine(moveRoutine);
-			moveRoutine = StartCoroutine(SlapRoutine(Mathf.Max(0.05f, moveWaitTime - temporaryAnger)));
+#region CharcterFunctions
+	private IEnumerator SpriteChanger(){
+		while(true){
+			dint randomRange;
+			
+			do{
+				randomRange = new dint(UnityEngine.Random.Range(10, 50), UnityEngine.Random.Range(10, 50));
+			}while(randomRange.a > randomRange.b);
+			
+			yield return WaitRandom(chasing, new dfloat(4f, 8f));
+			
+			if(randomRange.Subtract() % 2 == 0){
+				continue;
+			}
+			
+			spriteOutput.sprite = movementSprite[UnityEngine.Random.Range(0, movementSprite.Length)];
+			yield return WaitRandom(chasing, new dfloat(0.04f, 0.08f));
+			spriteOutput.sprite = movementSprite[0];
 		}
 	}
+	
+	private IEnumerator WaitRandom(bool half, dfloat values){
+		float mininum = half ? range.a * 0.5f : range.a;
+		float maximum = half ? range.b * 0.5f : range.b;
+		
+		yield return new WaitForSeconds(UnityEngine.Random.Range(mininum, maximum));
+	}
+	
+	private void StartChasing(){
+		if (chasing){
+			return;
+		}
+		
+		chasing = true;
+		
+		PlaySeeSound();
+		StartRoutine(ChaseRoutine());
+	}
+	
+	private void StopChasing(){
+		if (!chasing){
+			return;
+		}
+		
+		chasing = false;
+		StartRoutine(WanderRoutine());
+	}
 
-	public void GetTempAngry(float value){
-		temporaryAnger += value;
-
-		if (moveRoutine != null){
-			StopCoroutine(moveRoutine);
-			moveRoutine = StartCoroutine(SlapRoutine(Mathf.Max(0.05f, moveWaitTime - temporaryAnger)));
+	private IEnumerator ChaseRoutine(){
+		ResumeMovement();
+		
+		while(chasing){
+			agent.SetDestination(playerTransform.position);
+			yield return null;
 		}
 	}
-
-	public void Hear(Vector3 soundLocation, int priority){
-		if (!antiHearing && priority >= currentPriority){
-			MoveTo(soundLocation);
-			currentPriority = priority;
+	
+	private void PlaySeeSound(){
+		if(audioOutput.isPlaying){
+			return;
 		}
+		
+		audioOutput.PlayOneShot(seeSounds[Random.Range(0, seeSounds.Length)]);
 	}
+	
+	private bool canSeePlayer(){
+		Vector3 origin = transform.position + Vector3.up * eyeHeight;
+		Vector3 target = playerTransform.position + Vector3.up * eyeHeight;
 
-	public void ActivateAntiHearing(float time){
-		Wander();
-		antiHearing = true;
-		antiHearingTime = time;
+		Vector3 direction = target - origin;
+		float distance = direction.magnitude;
+
+		if (distance > sightRange){
+			return false;
+		}
+
+		if (Vector3.Angle(transform.forward, direction) > sightAngle * 0.5f){
+			return false;
+		}
+
+		if (!Physics.Raycast(origin,direction.normalized, out RaycastHit hit, distance, targetMask)){
+			return false;
+		}
+
+		return hit.transform == playerTransform || hit.transform.IsChildOf(playerTransform);
 	}
+#endregion
 }

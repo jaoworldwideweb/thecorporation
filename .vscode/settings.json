@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        "**/*.meta": true
+    },
+    "editor.mouseWheelZoom": true,
+    "editor.formatOnPaste": false
+}

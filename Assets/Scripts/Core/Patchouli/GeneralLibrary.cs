@@ -104,17 +104,26 @@ namespace GeneralLibrary{
 			Cursor.visible = true;
 		}
 		
+		public static void GenericRaycastForObject(Action<RaycastHit> function, dVector3 od, int mask, float distance){
+			if(!Physics.Raycast(od.a, od.b, out RaycastHit hit, distance, mask)){
+				return;			
+			}
+			
+			function(hit);
+		}
+		
 		public static void DoRaycastForObject(Action<RaycastHit> function, Camera camera, Transform playerTransform, float distance = 10f){
-			if (!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) || Time.timeScale == 0f){
+			if(!Singleton<InputManager>.Instance.GetActionKey(InputAction.Interact) || Time.timeScale == 0f){
 				return;
 			}
 			
 			Ray ray = camera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f));
 			
-			if (!Physics.Raycast(ray, out RaycastHit hit)){
+			if(!Physics.Raycast(ray, out RaycastHit hit)){
 				return;
 			}
-			if (hit.distance > distance){
+			
+			if(hit.distance > distance){
 				return;				
 			}
 			
@@ -180,11 +189,11 @@ namespace GeneralLibrary{
 	public static class UserInterface{
 	#region ImageManipulation
 		public static void FadeImage(Image image, dfloat alpha, float duration = 5f){
-			CoroutineRunner.Instance.StartCoroutine(IFadeImage(image, alpha, duration));
+			Singleton<MonoPuppet>.Instance.StartCoroutine(IFadeImage(image, alpha, duration));
 		}
 		
 		public static void DitherImage(Image image, dfloat alpha, float duration = 5f){
-			CoroutineRunner.Instance.StartCoroutine(IDitherImage(image, alpha, duration));
+			Singleton<MonoPuppet>.Instance.StartCoroutine(IDitherImage(image, alpha, duration));
 		}
 		
 		public static IEnumerator IFadeImage(Image image, dfloat alpha, float duration){
