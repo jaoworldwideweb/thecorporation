@@ -185,6 +185,11 @@ namespace GeneralLibrary{
 		}
 	#endregion
 	}
+		
+	public static class SaveData{
+		public static void SetBool(string name, bool state = false) => PlayerPrefs.SetInt(name, state ? 1 : 0);
+		public static bool GetBool(string name) => PlayerPrefs.GetInt(name) == 1;
+	}
 	
 	public static class UserInterface{
 	#region ImageManipulation
