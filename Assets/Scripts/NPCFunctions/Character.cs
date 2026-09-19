@@ -4,18 +4,18 @@ using UnityEngine.AI;
 
 public abstract class Character : MonoBehaviour{
 #region Inspector
-    [Header("Navigation")]
-    [SerializeField] protected NavMeshAgent agent;
-    [SerializeField] protected AILocationSelectorScript wanderer;
-    protected Coroutine currentRoutine;
+	[Header("Navigation")]
+	[SerializeField] protected NavMeshAgent agent;
+	[SerializeField] protected AILocationSelectorScript wanderer;
+	protected Coroutine currentRoutine;
 #endregion
 
 #region MainFunctions
-    protected virtual void Awake(){
-        if (!agent){
-            agent = GetComponent<NavMeshAgent>();			
+	protected virtual void Awake(){
+		if (!agent){
+			agent = GetComponent<NavMeshAgent>();			
 		}
-    }
+	}
 #endregion
 	
 #region API

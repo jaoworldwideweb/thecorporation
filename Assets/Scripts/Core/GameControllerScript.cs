@@ -16,12 +16,13 @@ public class GameControllerScript : MonoBehaviour{
 	
 	[Header("Player")]
 	public Transform playerTransform;
-	[SerializeField] private Camera[] sceneCameras;
 	public Camera playerCamera;
+	[SerializeField] private Camera[] sceneCameras;
 	
 	[Header("NPCs")]
 	[SerializeField] private GameObject[] npcObjects;
 	
+	// game states
 	[HideInInspector] public bool hasGameStarted = false;
 	[HideInInspector] public bool isGameFinale = false;
 	[HideInInspector] public bool isGameOver = false;
@@ -29,18 +30,24 @@ public class GameControllerScript : MonoBehaviour{
 	[HideInInspector] public bool isMouseLocked = true;
 	[HideInInspector] public bool isGamePaused = false;
 	[HideInInspector] public bool isInsideRoomTrigger = false;
+	[HideInInspector] public bool isInteractingWithCharacter = false;
 	
 	[Header("User Interface")]
 	[SerializeField] private GameObject pauseMenu;
 	[SerializeField] private GameObject playerHUD;
 	[SerializeField] private RenderTexture cameraOutput;
 	
+	[Header("Character Interactions")]
+	[SerializeField] private UserInterfaceTextObject textOutput;
+	[SerializeField] private TMP_Text characterName;
+	[SerializeField] private Image facePhoto;
+	
 	[Header("Box")]
 	[SerializeField] private TMP_Text boxCounter;
 	public UserInterfaceTextObject boxInformation;
 	public UserInterfaceTextObject roomInformation;
-	public int maxBoxes = 9;
-	[HideInInspector] public int collectedBoxes = 0;
+	public int maxBoxes { get; private set; }
+	[HideInInspector] public int collectedBoxes { get; private set; }
 	[HideInInspector] public Box currentBoxData;
 	[HideInInspector] public BoxColor roomColor = BoxColor.Red;
 	[HideInInspector] public bool isHoldingBox = false;	
@@ -63,19 +70,21 @@ public class GameControllerScript : MonoBehaviour{
 #region MainFunctions
 	private void Start(){
 	#if UNITY_STANDALONE && !UNITY_EDITOR
-		int monitorWidth = Screen.currentResolution.width;
-		int monitorHeight = Screen.currentResolution.height;
+		bool isLow = SaveData.GetBool("IS_LOW")
+		
+		int monitorWidth = isLow ? Screen.currentResolution.width / 2 : Screen.currentResolution.width;
+		int monitorHeight = isLow ? Screen.currentResolution.height / 2 : Screen.currentResolution.height;
 		
 		UserInterface.ResizeRenderTexture(new dint(monitorWidth, monitorHeight), cameraOutput, playerCamera);
 	#endif
 		
 		LockMouse();
-		currentBoxData.ClearData();
-		
+		currentBoxData.Clear();
 		boxCounter.text = UpdateBoxCount();
-		playerScript.boxViewmodel.obj.SetActive(false);
-		playerScript.boxViewmodel.SetOldTransform();
-		boxInformation.SetOldTransform();
+		
+		playerScript.boxViewmodel.SetCachedPosition();
+		boxInformation.Start();
+		textOutput.Start();
 		
 		soundHandler.PlayMusicFromList(musicTracks);
 	}
@@ -113,7 +122,7 @@ public class GameControllerScript : MonoBehaviour{
 		General.DoRaycastForObject(hit =>{
 			BoxScript box = hit.transform.GetComponent<BoxScript>();
 			
-			if (box == null){
+			if(box == null){
 				return;			
 			}
 			box.Collect();			
@@ -122,10 +131,20 @@ public class GameControllerScript : MonoBehaviour{
 		General.DoRaycastForObject(hit =>{
 			ItemObject item = hit.transform.GetComponent<ItemObject>();
 			
-			if (item == null){
+			if(item == null){
 				return;		
 			}
 			item.Collect();	
+		}, playerCamera, playerTransform, 40f);
+		
+		General.DoRaycastForObject(hit =>{
+			CharacterNode character = hit.transform.GetComponent<CharacterNode>();
+			
+			if(character == null){
+				return;		
+			}
+			
+			
 		}, playerCamera, playerTransform, 40f);
 		
 		if(Input.GetAxis("Mouse ScrollWheel") > 0f){
@@ -197,7 +216,46 @@ public class GameControllerScript : MonoBehaviour{
 		}
 	}
 #endregion
+
+#region CharacterFunctions
+	/*public void InteractWithCharacter(){
+		StartCoroutine();
+	}*/
 	
+	private IEnumerator ICharacterInteract(InteractableCharacter character){
+		isInteractingWithCharacter = true;
+		
+		facePhoto.sprite = character.GetPhoto();
+		
+		IShowCharacterInteractPanel(Direction.Up);
+		
+		float charactersPerSecond = character.GetCharactersPerSecond();
+		
+		yield return ITypeText(character.GetName(), characterName, charactersPerSecond * 2f);
+		yield return ITypeText(character.GetSmallTalk(), textOutput.tmpText, charactersPerSecond);
+		yield return General.IWaitUntilInput(InputAction.CloseInteraction);
+		
+		IShowCharacterInteractPanel(Direction.Down);
+		
+		isInteractingWithCharacter = false;
+	}
+	
+	private IEnumerator IShowCharacterInteractPanel(Direction direction){
+		Vector2 target = textOutput.GetDirection(direction);
+		bool setActive = direction == Direction.Up ? true : false;
+		
+		textOutput.obj.SetActive(setActive);
+		yield return textOutput.MoveObject(target, CommonMath.EaseOutCubic, 0.45f);
+	}
+	
+	private IEnumerator ITypeText(string text, TMP_Text output, float charactersPerSecond = 5f){
+		for(int i = 0; i < text.Length; i++){
+			textOutput.tmpText.text += text[i];
+			yield return new WaitForSeconds(1f / charactersPerSecond); 
+		}
+	}
+#endregion
+
 #region BoxFunctions
  	private string UpdateBoxCount() => $"{General.ReadOutNumber(collectedBoxes)} out of {General.ReadOutNumber(maxBoxes)} boxes.";
 	public string GetFormattedRoomName() => $"You are in the {General.GetFormattedColor(roomColor).ToLower()} room";
@@ -211,12 +269,12 @@ public class GameControllerScript : MonoBehaviour{
 			return;			
 		}
 		
-		obj.isInState = !obj.isInState;
-		Direction direction = obj.isInState ? Direction.Up : Direction.Down;
-		StartCoroutine(IMoveInfoPanel(function, check, direction, obj, time));
+		obj.state = obj.state == ObjectState.Showing ? ObjectState.Hidden : ObjectState.Showing;
+		Direction direction = obj.state == ObjectState.Showing ? Direction.Up : Direction.Down;
+		StartCoroutine(IMovePanel(function, check, direction, obj, time));
 	}
 	
-	public IEnumerator IMoveInfoPanel(Action function, bool check, Direction direction, UserInterfaceTextObject obj, float time = 0.45f){
+	public IEnumerator IMovePanel(Action function, bool check, Direction direction, UserInterfaceTextObject obj, float time = 0.45f){
 		if (!check){
 			yield break;
 		}
@@ -249,15 +307,15 @@ public class GameControllerScript : MonoBehaviour{
 		collectedBoxes++;
 		boxCounter.text = UpdateBoxCount();
 		isHoldingBox = false;
-		currentBoxData.ClearData();
+		currentBoxData.Clear();
 		
 		if(playerScript.stamina < playerScript.maxStamina){
 			playerScript.stamina = playerScript.maxStamina / UnityEngine.Random.Range(0, 4); // i love rng
 		}
 		
-		if(boxInformation.isInState){
+		if(boxInformation.state == ObjectState.Showing){
 			StartCoroutine(
-				IMoveInfoPanel(
+				IMovePanel(
 					() => boxInformation.tmpText.text = currentBoxData.GetFormatted(),
 					isHoldingBox,
 					Direction.Down,

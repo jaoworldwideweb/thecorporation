@@ -65,7 +65,7 @@ public class PlayerScript : MonoBehaviour{
 		health = maxHealth;
 		
 		boxViewmodel.obj.SetActive(false);
-		boxViewmodel.SetOldTransform();
+		boxViewmodel.SetCachedPosition();
 		StartCoroutine(BobBoxViewmodel(boxViewmodel, new Vector3(0f, 0.25f, 0f), 2f, 2f, HighMath.PI));
 	}
 	
@@ -166,8 +166,8 @@ public class PlayerScript : MonoBehaviour{
 				
 				float wave = (Mathf.Sin(time) + 1f) * 0.5f;
 				
-				Vector3 bobTarget = Vector3.Lerp(boxViewmodel.oldTransform, targetPosition, wave);
-				boxViewmodel.obj.transform.localPosition = Vector3.Lerp(boxViewmodel.oldTransform, bobTarget, amount);
+				Vector3 bobTarget = Vector3.Lerp(boxViewmodel.cachedPosition, targetPosition, wave);
+				boxViewmodel.obj.transform.localPosition = Vector3.Lerp(boxViewmodel.cachedPosition, bobTarget, amount);
 			}
 			
 			yield return null;
@@ -263,7 +263,7 @@ public class PlayerScript : MonoBehaviour{
 		}
 	}
 	
-	public void DoHealthAction(HealthAction action, float ammount, CreatureType hit){
+	public void DoHealthAction(HealthAction action, float ammount, CreatureType hit = CreatureType.None){
 		float absoluteAmmount = Mathf.Abs(ammount);
 		float negativeAmmount = ammount;
 		bool isAmmountNull = ammount == 0f;
@@ -272,7 +272,7 @@ public class PlayerScript : MonoBehaviour{
 			return;
 		}
 		
-		if(hit != null & action == HealthAction.Damage){
+		if(hit == CreatureType.None & action == HealthAction.Damage){
 			return;
 		}
 		

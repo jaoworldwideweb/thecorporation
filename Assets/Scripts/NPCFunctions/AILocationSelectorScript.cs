@@ -6,7 +6,7 @@ public class AILocationSelectorScript : MonoBehaviour{
 	
 	public Vector3 GetNewTarget(){
 		if (Random.value < 0.5f){
-			return GetNewTargetHallway();			
+			return GetNewTargetHallway();
 		}
 		
 		return GetNewTargetRoom();
@@ -18,5 +18,24 @@ public class AILocationSelectorScript : MonoBehaviour{
 	
 	public Vector3 GetNewTargetRoom(){
 		return rooms[UnityEngine.Random.Range(0, rooms.Length)].position;
+	}
+	
+	public bool IsNearHallwayCorner(Vector3 position, float radius){
+		float radiusSqr = radius * radius;
+
+		for (int i = 0; i < hallways.Length; i++){
+			Transform hallway = hallways[i];
+			
+			if (hallway == null){
+				continue;
+			}
+
+			Vector3 diff = hallway.position - position;
+			if (diff.sqrMagnitude <= radiusSqr){
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

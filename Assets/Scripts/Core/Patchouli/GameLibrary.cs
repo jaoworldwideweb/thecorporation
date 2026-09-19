@@ -16,6 +16,11 @@ namespace GameLibrary{
 		Right
 	}
 	
+	public enum ObjectState{
+		Showing,
+		Hidden
+	}
+	
 	public enum HealthAction{
 		Damage,
 		Regeneration
@@ -76,20 +81,27 @@ namespace GameLibrary{
 #region GameObjects
 	[System.Serializable]
 	public class UserInterfaceObject{
+		[HideInInspector] public RectTransform rectTransform;
 		public GameObject obj;
-		public RectTransform rectTransform;
-		public Vector2 oldRectTransform = new Vector2(0f, 0f);
+		public Vector2 cachedPosition = new Vector3(0f, 0f, 0f);
 		public DirectionVector2 directions;
+		public ObjectState state;
 		public bool isMoving = false;
-		public bool isInState; // generic variable :-)
 		
-		public void SetOldTransform(){
-			oldRectTransform = rectTransform.anchoredPosition;
+		public void Start(){
+			SetCachedPosition();
+			SetRectTransform();
 		}
 		
-		public Vector2 GetDirection(Direction direction){
-			return directions.GetDirection(direction);
+		public void SetCachedPosition(){
+			cachedPosition = obj.transform.localPosition;
 		}
+		
+		public void SetRectTransform(){
+			rectTransform = obj.GetComponent<RectTransform>();
+		}
+		
+		public Vector2 GetDirection(Direction direction) => directions.GetDirection(direction);
 		
 		public IEnumerator MoveObject(Vector2 targetPosition, CommonMath.EaseFunction easing, float time = 1f){
 			if(isMoving){
@@ -110,25 +122,24 @@ namespace GameLibrary{
 	[System.Serializable]
 	public class FullObject{
 		public GameObject obj;
-		public Vector3 oldTransform = new Vector3(0f, 0f, 0f);
+		public Vector3 cachedPosition = new Vector3(0f, 0f, 0f);
+		public DirectionVector3 directions;
+		public ObjectState state;
 		public bool isMoving = false;
-		public bool isInState; // generic variable :-)
 		
 		private Coroutine currentAction = null;
 		
-		public void SetOldTransform(){
-			oldTransform = obj.transform.localPosition;
+		public void SetCachedPosition(){
+			cachedPosition = obj.transform.localPosition;
 		}
 		
-		public void MoveObject(Vector3 targetPosition, CommonMath.EaseFunction easing, float time = 1f){
+		public Vector3 GetDirection(Direction direction) => directions.GetDirection(direction);
+		
+		private IEnumerator MoveObject(Vector3 targetPosition, CommonMath.EaseFunction easing, float time = 1f){
 			if(isMoving){
-				return;
+				yield break;
 			}
 			
-			currentAction = Singleton<MonoPuppet>.Instance.StartCoroutine(IMoveObject(targetPosition, easing, time));
-		}
-		
-		private IEnumerator IMoveObject(Vector3 targetPosition, CommonMath.EaseFunction easing, float time = 1f){
 			isMoving = true;
 			yield return UserInterface.Move3DObject(obj.transform, targetPosition, easing, time);
 			isMoving = false;
@@ -189,7 +200,7 @@ namespace GameLibrary{
 			this.right = right;
 		}
 		
-		public Vector2 GetDirection(Direction direction){
+		public Vector3 GetDirection(Direction direction){
 			switch(direction){
 				case Direction.Up: return up;
 				case Direction.Down: return down;
@@ -197,7 +208,7 @@ namespace GameLibrary{
 				case Direction.Right: return right; 
 			}
 			
-			return Vector2.zero;
+			return Vector3.zero;
 		}
 	}
 #endregion
@@ -259,14 +270,13 @@ namespace GameLibrary{
 			this.id = id;
 		}
 		
-		// functions
-		public void ClearData(){
+		public void Clear(){
 			color = BoxColor.Red;
 			id = 0;
 		}
 		
 		public void Transfer(Box box){
-			ClearData();
+			Clear();
 			color = box.color;
 			id = box.id;
 		}
@@ -286,50 +296,100 @@ namespace GameLibrary{
 	}
 	
 	[System.Serializable]
-	public struct Job{
-		public string name;
-		public string id;
+	public class CharacterOutput{
+		public Image image;
+		public TMP_Text name;
+		public TMP_Text description;
+	}
+	
+	[System.Serializable]
+	public class Employee{
+		private const string WORKPLACE = "Warehouse A-00";
+		private const string ID = "9000";
 		
-		public Job(string name, string id){
-			this.name = name;
-			this.id = id;
+		[SerializeField] private string workplace = WORKPLACE;
+		[SerializeField] private string id = ID;
+		
+		public string GetWorkplace() => string.IsNullOrEmpty(workplace) ? WORKPLACE : workplace;
+		public string GetID() => string.IsNullOrEmpty(id) ? ID : id;
+	}
+
+	[System.Serializable]
+	public class Job{
+		private const string NAME = "Warehouse Caretaker";
+		private const string ID = "9000";
+		
+		[SerializeField] private string name = NAME;
+		[SerializeField] private string id = ID;
+		
+		public string GetName() => string.IsNullOrEmpty(name) ? NAME : name;
+		public string GetID() => string.IsNullOrEmpty(id) ? ID : id;
+	}
+
+	[System.Serializable]
+	public class CharacterData{
+		private const string NAME = "Jayden Doe";
+		private const string GENDER = "Unknown";
+		private const string DESCRIPTION = "Seja marginal, seja herói.";
+		private static readonly Date BIRTHDAY = new Date(1999, 1, 1);
+		
+		[Header("Information")]
+		[SerializeField] private Sprite photo;
+		[SerializeField] private string name = NAME;
+		[SerializeField] private string gender = GENDER;
+		[SerializeField, TextArea(5, 10)] public string description = DESCRIPTION;
+		[SerializeField] private Date birthday = BIRTHDAY;
+		
+		[Header("Job Information")]
+		[SerializeField] private Job job;
+		[SerializeField] private Employee employee;
+		
+		public string GetName() => string.IsNullOrEmpty(name) ? NAME : name;
+		public string GetGender() => string.IsNullOrEmpty(gender) ? GENDER : gender;
+		public string GetDescription() => string.IsNullOrEmpty(description) ? DESCRIPTION : description;
+		public Date GetBirthday() => birthday.isNull() ? BIRTHDAY : birthday;
+		public int GetAge(Date currentDate) => currentDate.year - birthday.year;
+		public string GetFormattedBirthday() => GetBirthday().GetFormatted();
+		public Sprite GetPhoto() => photo;
+		
+		public string GetBasicFormatted(Date currentDate){
+			return
+				$"Name: {GetName()}\tAge: ≈{GetAge(currentDate)}\n" +
+				$"Gender: {GetGender()}";
+		}
+
+		public string GetFullFormatted(){
+			return
+				$"Gender: {GetGender()}\n" +
+				$"Date of birth: {GetFormattedBirthday()}\n" +
+				$"Current Job: {job?.GetName() ?? "None"} ({job?.GetID() ?? "N/A"})\n" +
+				$"Workplace: {employee?.GetWorkplace() ?? "N/A"}";
 		}
 	}
 
 	[System.Serializable]
-	public class EmployeeData{
-		[Header("Main Information")]
-		public Sprite photo;
-		public string name = "Jayden Doe";
-		public string gender = "Unknown";
-		public Date birthday;
+	public class InteractableCharacter{
+		private const string NAME = "Jayden Doe";
+		private const float CHARACTERS_PER_SECOND = 5f;
 		
-		[Header("Workplace Information")]
-		public string workplace = "A00";
-		public string id = "0000";
-		public Job job;
+		[Header("Information")]
+		[SerializeField] private string name = NAME;
+		[SerializeField] private float charactersPerSecond = CHARACTERS_PER_SECOND;
+		[SerializeField] private Sprite photo;
 		
-		public string GetFormatted(){
-			return
-				$"Gender: {gender}\n" +
-				$"Date of birth: {birthday.GetDate()}\n" +
-				$"Current Job: {job.name} ({job.id})\n" +
-				$"Workplace: {workplace}\n";
-		}
-	}
-	
-	[System.Serializable]
-	public class CharacterDescription{
-		[Header("Main Information")]
-		public Sprite photo;
-		public string name = "Jayden Doe";
-		public string gender = "Unknown";
-		[TextArea(3, 10)] public string description;
-		
-		public string GetFormatted(){
-			return
-				$"Name: {name}\n" +
-				$"Gender: {gender}\n\n";
+		[Header("Dialogue")]
+		[SerializeField, TextArea(2, 5)] public string[] smallTalk;
+
+		public string GetName() => string.IsNullOrEmpty(name) ? NAME : name;
+		public float GetCharactersPerSecond() => charactersPerSecond <= 0f ? CHARACTERS_PER_SECOND : charactersPerSecond;
+		public Sprite GetPhoto() => photo;
+
+		public string GetSmallTalk(){
+			if (smallTalk == null || smallTalk.Length == 0){
+				return string.Empty;				
+			}
+			
+			return smallTalk[UnityEngine.Random.Range(0, smallTalk.Length)];
 		}
 	}
 #endregion

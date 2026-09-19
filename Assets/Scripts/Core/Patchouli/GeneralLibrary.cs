@@ -11,39 +11,6 @@ using TMPro;
 
 namespace GeneralLibrary{
 #region Structs
-	// might be useful for dialouge?
-	[System.Serializable]
-	public struct dstring{
-		public string a;
-		public string b;
-		public string memory;
-		
-		public unsafe dstring(string a, string b){
-			this.a = a; this.b = b; this.memory = null;
-		}
-		
-		// bools
-		public bool isClear() => a == null && b == null;
-		public bool isMemoryClear() => memory == null;
-		public bool isEqual() => a == b;
-		
-		// operations
-		public void Store(string push) => memory = push;
-		public string Get() => memory;
-		
-		public void Push(ref string point) => point = memory;
-		public void Clear(bool full = false){
-			a = null;
-			b = null;
-			
-			if(!full){
-				return;
-			}
-			
-			memory = null;
-		}
-	}
-	
 	[System.Serializable]
 	public struct Date{
 		public int year;
@@ -56,7 +23,11 @@ namespace GeneralLibrary{
 			this.day = day;
 		}
 		
-		public string GetDate(){
+		public bool isNull(){
+			return year == 0 || month == 0 || day == 0;
+		}
+		
+		public string GetFormatted(){
 			return $"{month}/{day}/{year}";
 		}
 	}
@@ -130,6 +101,12 @@ namespace GeneralLibrary{
 			function(hit);
 		}
 		
+		public static IEnumerator IWaitUntilInput(InputAction action){
+			while(!Singleton<InputManager>.Instance.GetActionKeyDown(action)){
+				yield return null;
+			}
+		}
+		
 		public static void DoActionFromInput(Action function, InputAction action){
 			if (!Singleton<InputManager>.Instance.GetActionKeyDown(action)){
 				return;
@@ -187,8 +164,19 @@ namespace GeneralLibrary{
 	}
 		
 	public static class SaveData{
-		public static void SetBool(string name, bool state = false) => PlayerPrefs.SetInt(name, state ? 1 : 0);
-		public static bool GetBool(string name) => PlayerPrefs.GetInt(name) == 1;
+	#region SaveData
+		public static void SetBool(string name, bool state = false){
+			PlayerPrefs.SetInt(name, state ? 1 : 0);
+		}
+		
+		public static bool GetBool(string name, bool defaultValue = false){
+			if(!PlayerPrefs.HasKey(name)){
+				return defaultValue;
+			}
+			
+			return PlayerPrefs.GetInt(name) == 1;
+		}
+	#endregion
 	}
 	
 	public static class UserInterface{

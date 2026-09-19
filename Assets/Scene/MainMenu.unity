@@ -44,7 +44,6 @@ GameObject:
   m_Component:
   - component: {fileID: 511}
   - component: {fileID: 173}
-  - component: {fileID: 174}
   m_Layer: 0
   m_Name: MenuController
   m_TagString: Untagged
@@ -85,42 +84,65 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   forgroundObject: {fileID: 2055180862}
   foregroundImage: {fileID: 1703327968}
+  mainCharacterCard:
+    image: {fileID: 2114014055}
+    name: {fileID: 1316896985}
+    description: {fileID: 432118758}
+  characterDescription:
+    image: {fileID: 1006757264}
+    name: {fileID: 233514617}
+    description: {fileID: 230925544}
   staminaSlider: {fileID: 1209700969}
-  employeeDescriptionOutput:
-  - {fileID: 1316896985}
-  - {fileID: 432118758}
-  idPhoto: {fileID: 2114014055}
   soundHandler: {fileID: 1444088678500787997}
   music: {fileID: 8300000, guid: d6d069f7288af654ba1079a907af6c29, type: 3}
-  currentEmployee:
-    photo: {fileID: 21300000, guid: c4e6e7c67c44482468764ec409456a45, type: 3}
+  selectionSound: {fileID: 8300000, guid: 24d91acfc720f194797b987381f8e963, type: 3}
+  characters:
+  - photo: {fileID: 21300000, guid: c4e6e7c67c44482468764ec409456a45, type: 3}
     name: Frankie Lauterbur
     gender: Female
+    description: "\tFrankie works as a warehouse caretaker for LX Corporation. Her
+      coworkers describe her as a laid back woman who simply keeps her head down
+      and cares about doing her job well. She works the night shift, allowing her
+      to attend university during the day, where she is pursuing a degree in physics.\r\n\n\tFrankie
+      was kicked out of her home when she turned eighteen and has lived in a friend's
+      apartment ever since. Between rent, living expenses, and the modest salary
+      she earns at the warehouse, she struggles to stay afloat while working toward
+      a better future.\r"
     birthday:
       year: 1951
       month: 7
       day: 13
-    workplace: B24
-    id: 0145
     job:
       name: Warehouse Caretaker
       id: 0220
+    employee:
+      workplace: Warehouse B24
+      id: 9000
+  - photo: {fileID: 21300000, guid: c4e6e7c67c44482468764ec409456a45, type: 3}
+    name: Frankie Lauterbur but cooler
+    gender: Female
+    description: "\tFrankie works as a warehouse caretaker for LX Corporation. Her
+      coworkers describe her as a laid back woman who simply keeps her head down
+      and cares about doing her job well. She works the night shift, allowing her
+      to attend university during the day, where she is pursuing a degree in physics.\r\n\n\tFrankie
+      was kicked out of her home when she turned eighteen and has lived in a friend's
+      apartment ever since. Between rent, living expenses, and the modest salary
+      she earns at the warehouse, she struggles to stay afloat while working toward
+      a better future.\r"
+    birthday:
+      year: 1951
+      month: 7
+      day: 13
+    job:
+      name: Warehouse Caretaker
+      id: 0220
+    employee:
+      workplace: Warehouse B24
+      id: 9000
   currentDate:
     year: 1974
     month: 5
     day: 12
---- !u!114 &174
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 171}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fba99baf781f02c40b8fdc62c7f65bde, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!20 &208
 Camera:
   m_ObjectHideFlags: 0
@@ -376,7 +398,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4284506208
+    rgba: 4294967295
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -580,7 +602,7 @@ RectTransform:
   m_Children:
   - {fileID: 1298181920}
   m_Father: {fileID: 575837363}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
@@ -701,8 +723,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 886121384}
-        m_TargetAssemblyTypeName: CharacterDescriptionManager, Assembly-CSharp
+      - m_Target: {fileID: 173}
+        m_TargetAssemblyTypeName: MenuManager, Assembly-CSharp
         m_MethodName: IncreaseCharacterSelection
         m_Mode: 1
         m_Arguments:
@@ -881,16 +903,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 230925542}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 575837363}
-  m_RootOrder: 6
+  m_Father: {fileID: 284486601}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -426.63, y: -0.00004069}
+  m_AnchoredPosition: {x: 206.03674, y: -0.00004069}
   m_SizeDelta: {x: 728.078, y: 385.818}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &230925544
@@ -1009,7 +1031,7 @@ GameObject:
   - component: {fileID: 233514618}
   - component: {fileID: 233514617}
   m_Layer: 5
-  m_Name: MainInfoText
+  m_Name: NameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1022,17 +1044,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 233514615}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 575837363}
-  m_RootOrder: 7
+  m_Father: {fileID: 284486601}
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -347, y: 257.51}
-  m_SizeDelta: {x: 423.64, y: 129.1995}
+  m_AnchoredPosition: {x: 162.90643, y: 257.51}
+  m_SizeDelta: {x: 541.813, y: 129.1995}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &233514617
 MonoBehaviour:
@@ -1272,6 +1294,45 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 254422628}
   m_CullTransparentMesh: 1
+--- !u!1 &284486600
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 284486601}
+  m_Layer: 5
+  m_Name: Stuff
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &284486601
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 284486600}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1595732643}
+  - {fileID: 1006757263}
+  - {fileID: 230925543}
+  - {fileID: 233514616}
+  m_Father: {fileID: 575837363}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &322446066
 GameObject:
   m_ObjectHideFlags: 0
@@ -1530,7 +1591,7 @@ GameObject:
   - component: {fileID: 432118759}
   - component: {fileID: 432118758}
   m_Layer: 5
-  m_Name: IDText2
+  m_Name: DescriptionText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1785,14 +1846,10 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_Children:
-  - {fileID: 886121385}
   - {fileID: 2103017578}
   - {fileID: 187743794}
   - {fileID: 2079392614}
-  - {fileID: 1595732643}
-  - {fileID: 1006757263}
-  - {fileID: 230925543}
-  - {fileID: 233514616}
+  - {fileID: 284486601}
   m_Father: {fileID: 1878008736}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2924,6 +2981,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 173}
+        m_TargetAssemblyTypeName: MenuManager, Assembly-CSharp
+        m_MethodName: SetMainCharacterCard
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &879740706
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3014,71 +3083,6 @@ MonoBehaviour:
   menuManager: {fileID: 173}
   currentMenu: {fileID: 1541049488}
   nextMenu: {fileID: 965205573}
---- !u!1 &886121383
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 886121385}
-  - component: {fileID: 886121384}
-  m_Layer: 5
-  m_Name: CharacterDescriptionManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &886121384
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 886121383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: daea4efc7c6e4ad45af117ff8ea17853, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  characters:
-  - photo: {fileID: 21300000, guid: c4e6e7c67c44482468764ec409456a45, type: 3}
-    name: Frankie Lauterbur
-    gender: Female
-    description: "\tFrankie works as a warehouse caretaker for LX Corporation. Her
-      coworkers describe her as a laid back woman who simply keeps her head down
-      and cares about doing her job well. She works the night shift, allowing her
-      to attend university during the day, where she is pursuing a degree in physics.\r\n\n\tFrankie
-      was kicked out of her home when she turned eighteen and has lived in a friend's
-      apartment ever since. Between rent, living expenses, and the modest salary
-      she earns at the warehouse, she struggles to stay afloat while working toward
-      a better future.\r"
-  - photo: {fileID: 21300000, guid: 01b72c14496a4ad4380b1d16179bf8af, type: 3}
-    name: clock
-    gender: clock
-    description: it clokc
-  spriteOutput: {fileID: 1006757264}
-  textOutput:
-  - {fileID: 233514617}
-  - {fileID: 230925544}
-  soundHandler: {fileID: 1444088678500787997}
-  selectionSound: {fileID: 8300000, guid: 91733e7ac5d2c624b8b715f865582225, type: 3}
---- !u!4 &886121385
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 886121383}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 575837363}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &929061712
 GameObject:
   m_ObjectHideFlags: 0
@@ -3758,12 +3762,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1006757262}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.7, y: 0.7, z: 0.8}
+  m_LocalScale: {x: 0.8000001, y: 0.8000001, z: 0.8000001}
   m_Children: []
-  m_Father: {fileID: 575837363}
-  m_RootOrder: 5
+  m_Father: {fileID: 284486601}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -4542,7 +4546,7 @@ GameObject:
   - component: {fileID: 1316896986}
   - component: {fileID: 1316896985}
   m_Layer: 5
-  m_Name: IDText1
+  m_Name: NameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5313,12 +5317,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1595732642}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0}
-  m_LocalScale: {x: 0.7, y: 0.7, z: 0.8}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.8000001, y: 0.8000001, z: 0.8000001}
   m_Children: []
-  m_Father: {fileID: 575837363}
-  m_RootOrder: 4
+  m_Father: {fileID: 284486601}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -6374,7 +6378,7 @@ RectTransform:
   m_Children:
   - {fileID: 1218043155}
   m_Father: {fileID: 575837363}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -6495,8 +6499,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 886121384}
-        m_TargetAssemblyTypeName: CharacterDescriptionManager, Assembly-CSharp
+      - m_Target: {fileID: 173}
+        m_TargetAssemblyTypeName: MenuManager, Assembly-CSharp
         m_MethodName: DecreaseCharacterSelection
         m_Mode: 1
         m_Arguments:
@@ -6763,7 +6767,7 @@ RectTransform:
   m_Children:
   - {fileID: 595280082}
   m_Father: {fileID: 575837363}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}

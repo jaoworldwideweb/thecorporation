@@ -5,43 +5,70 @@ using System.Runtime.CompilerServices;
 namespace MathLibrary{
 #region Structs
 	[System.Serializable]
-	public unsafe struct dfloat{
-		public unsafe float a;
-		public unsafe float b;
-		private unsafe float memory;
+	public struct dfloat{
+		public float a;
+		public float b;
+		public float memory { get; private set; }
 		
-		public unsafe dfloat(float a, float b){
+		public dfloat(float a, float b){
 			this.a = a;
 			this.b = b;
 			this.memory = 0f;
 		}
 		
-		// bools
-		public bool isClear() => a == 0f && b == 0f;
-		public bool isMemoryClear() => memory == 0f;
-		public bool isEqual() => a == b;
+		public bool isClear(bool full = false){
+			if(!full){
+				return a == 0f && b == 0f;
+			}
+			
+			return a == 0f && b == 0f && memory == 0f;
+		}
 		
-		// calculations
+		public bool isEqual(bool full = false){
+			if(!full){
+				return a == b;
+			}
+			
+			return (a == b) && (b == memory);
+		}
+		
 		public float Sum() => a + b;
 		public float Multiply() => a * b;
 		
 		public float Subtract(bool inv = false) => inv ? b - a : a - b;
-		public float Divide(bool inv = false) =>  inv ? b / a : a / b;
-		
-		public float Floor(float value) => (int)value - (value < (int)value ? 1 : 0);
-		public float Round(float value) => (int)(value + (value >= 0f ? 0.5f : -0.5f));
+		public float Divide(bool inv = false){
+			if(b == 0f || a == 0f){
+				return 0f;
+			}
+			
+			return inv ? b / a : a / b;
+		}
 		
 		// operations
 		public void Store(float push) => memory = push;
-		public float Get() => memory;
 		
-		public void Push(ref float point) => point = memory;
+		public void Push(char variable = 'a'){
+			char lowVariable = char.ToLowerInvariant(variable);
+			
+			switch(lowVariable){
+				case 'a':
+					a = memory;
+					break;
+				
+				case 'b':
+					b = memory;
+					break;
+			}
+		}
+		
 		public void Clear(bool full = false){
-			a = 0f;
-			b = 0f;
 			if(!full){
+				a = 0f;
+				b = 0f;
+				
 				return;
 			}
+			
 			memory = 0f;
 		}
 	}
@@ -50,7 +77,7 @@ namespace MathLibrary{
 	public struct dint{
 		public int a;
 		public int b;
-		private int memory;
+		public int memory { get; private set; }
 		
 		public dint(int a, int b){
 			this.a = a;
@@ -58,29 +85,58 @@ namespace MathLibrary{
 			this.memory = 0;
 		}
 		
-		// bools
-		public bool isClear() => a == 0 && b == 0;
-		public bool isMemoryClear() => memory == 0;
-		public bool isEqual() => a == b;
+		public bool isClear(bool full = false){
+			if(!full){
+				return a == 0 && b == 0;
+			}
+			
+			return a == 0 && b == 0 && memory == 0;
+		}
 		
-		// calculations
+		public bool isEqual(bool full = false){
+			if(!full){
+				return a == b;
+			}
+			
+			return (a == b) && (b == memory);
+		}
+		
 		public int Sum() => a + b;
 		public int Multiply() => a * b;
 		
 		public int Subtract(bool inv = false) => inv ? b - a : a - b;
-		public int Divide(bool inv = false) =>  inv ? b / a : a / b;
+		public int Divide(bool inv = false){
+			if(b == 0 || a == 0){
+				return 0;
+			}
+			
+			return inv ? b / a : a / b;
+		}
 		
-		// operations
-		public void Store(int push) => memory = push;
-		public int Get() => memory;
+		public void Store(int value) => memory = value;
 		
-		public void Push(ref int point) => point = memory;
+		public void Push(char variable = 'a'){
+			char lowVariable = char.ToLowerInvariant(variable);
+			
+			switch(lowVariable){
+				case 'a':
+					a = memory;
+					break;
+				
+				case 'b':
+					b = memory;
+					break;
+			}
+		}
+		
 		public void Clear(bool full = false){
-			a = 0;
-			b = 0;
 			if(!full){
+				a = 0;
+				b = 0;
+				
 				return;
 			}
+			
 			memory = 0;
 		}
 	}

@@ -4,8 +4,7 @@ using System.Collections;
 using GeneralLibrary;
 
 [System.Serializable]
-public class CharacterFace
-{
+public class CharacterFace{
 	public Sprite[] shocked = new Sprite[5];
 	public Sprite[] lookingForward = new Sprite[5];
 	public Sprite[] lookingLeft = new Sprite[5];

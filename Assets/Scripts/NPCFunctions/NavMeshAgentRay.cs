@@ -7,13 +7,8 @@ using System.Collections.Generic;
 
 public class NavMeshAgentRay : MonoBehaviour{
 #region Inspector
-	[Header("References")]
 	[SerializeField] private NavMeshAgent agent;
-	
-	[Header("Settings")]
-	[SerializeField] private bool showPath = true;
 	[SerializeField] private Color pathColor = Color.red;
-	[SerializeField] private float pathWidth = 15f;	
 #endregion
 
 #region MainFunctions

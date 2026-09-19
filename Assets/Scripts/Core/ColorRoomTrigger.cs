@@ -95,7 +95,7 @@ public class ColorRoomTrigger : MonoBehaviour{
 		
 		// this shit looks ugly as FUCK!!!!!!!!
 		StartCoroutine(
-			gameController.IMoveInfoPanel(
+			gameController.IMovePanel(
 				() => gameController.roomInformation.tmpText.text = gameController.GetFormattedRoomName(),
 				gameController.isInsideRoomTrigger,
 				Direction.Down,

@@ -1,9 +1,6 @@
-using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
-using MathLibrary;
-using GeneralLibrary;
 
 public class StarHumanoid : Character{
 #region Inspector
@@ -17,76 +14,65 @@ public class StarHumanoid : Character{
 	[SerializeField] private float eyeHeight = 2f;
 	[SerializeField] private LayerMask targetMask;
 	
-	[Header("Sprites")]
-	[SerializeField] private SpriteRenderer spriteOutput;
-	[SerializeField] private Sprite[] movementSprite;
-	
 	[Header("Sounds")]
 	[SerializeField] private AudioSource audioOutput;
 	[SerializeField] private AudioClip[] seeSounds;
+	
+	[Header("Ambush")]
+	[SerializeField] private float cornerZoneRadius = 3f;
+	[SerializeField] private float ambushTriggerDistance = 20f;
+	[SerializeField] private float fleeHealthThreshold = 50f;
+	[SerializeField] private float fleeDistance = 15f;
+	[SerializeField] private float flankDistance = 4f;
+	[SerializeField] private float flankSampleRadius = 5f;
+	[SerializeField] private float lungeSpeedMultiplier = 1.5f;
+	
 	private bool chasing;
+	private bool ambushing;
+	private float ambushTriggerDistanceSqr;
+	private float baseSpeed;
+	private float baseFootstepVolume;
 #endregion
 
 #region MainFunctions
+#pragma warning disable CS0414
 	private void Awake(){
 		base.Awake();
+		
+		ambushTriggerDistanceSqr = ambushTriggerDistance * ambushTriggerDistance;
+		baseSpeed = agent.speed;
 	}
+#pragma warning restore CS0414
 	
 	private void Start(){
 		playerTransform = playerScript.transform;
-		
-		StartCoroutine(SpriteChanger());
 		StartRoutine(WanderRoutine());
 	}
 	
 	private void Update(){
-		SpriteChanger();
-		
 		if(!chasing){
 			if(canSeePlayer()){
 				StartChasing();
 			}
-
 			return;
 		}
 		
+		if (!ambushing && wanderer.IsNearHallwayCorner(transform.position, cornerZoneRadius)){
+			Vector3 toPlayer = playerTransform.position - transform.position;
+			if (toPlayer.sqrMagnitude <= ambushTriggerDistanceSqr){
+				DecideAmbush();
+			}
+		}
+
 		if(canSeePlayer()){
 			return;
 		}
 		
 		StopChasing();
 	}
-	
 #endregion
 
-#region CharcterFunctions
-	private IEnumerator SpriteChanger(){
-		while(true){
-			dint randomRange;
-			
-			do{
-				randomRange = new dint(UnityEngine.Random.Range(10, 50), UnityEngine.Random.Range(10, 50));
-			}while(randomRange.a > randomRange.b);
-			
-			yield return WaitRandom(chasing, new dfloat(4f, 8f));
-			
-			if(randomRange.Subtract() % 2 == 0){
-				continue;
-			}
-			
-			spriteOutput.sprite = movementSprite[UnityEngine.Random.Range(0, movementSprite.Length)];
-			yield return WaitRandom(chasing, new dfloat(0.04f, 0.08f));
-			spriteOutput.sprite = movementSprite[0];
-		}
-	}
-	
-	private IEnumerator WaitRandom(bool half, dfloat values){
-		float mininum = half ? range.a * 0.5f : range.a;
-		float maximum = half ? range.b * 0.5f : range.b;
-		
-		yield return new WaitForSeconds(UnityEngine.Random.Range(mininum, maximum));
-	}
-	
+#region AIFunctions
 	private void StartChasing(){
 		if (chasing){
 			return;
@@ -104,6 +90,9 @@ public class StarHumanoid : Character{
 		}
 		
 		chasing = false;
+		ambushing = false;
+		agent.speed = baseSpeed;
+
 		StartRoutine(WanderRoutine());
 	}
 
@@ -114,6 +103,53 @@ public class StarHumanoid : Character{
 			agent.SetDestination(playerTransform.position);
 			yield return null;
 		}
+	}
+	
+	private void DecideAmbush(){
+		ambushing = true;
+		
+		bool shouldFlee = playerScript.health < fleeHealthThreshold;
+		StartRoutine(AmbushRoutine(shouldFlee));
+	}
+
+	private IEnumerator AmbushRoutine(bool shouldFlee){
+		if(shouldFlee){
+			ResumeMovement();
+			agent.SetDestination(GetFleePoint());
+			yield return new WaitUntil(HasReachedDestination);
+		}
+
+		ResumeMovement();
+		agent.SetDestination(GetFlankPoint());
+		yield return new WaitUntil(HasReachedDestination);
+
+		agent.speed = baseSpeed * lungeSpeedMultiplier;
+		agent.SetDestination(playerTransform.position);
+		yield return new WaitUntil(HasReachedDestination);
+
+		agent.speed = baseSpeed;
+		ambushing = false;
+	}
+	
+	private Vector3 GetFlankPoint(){
+		Vector3 behind = playerTransform.position - playerTransform.forward * flankDistance;
+
+		if (NavMesh.SamplePosition(behind, out NavMeshHit hit, flankSampleRadius, NavMesh.AllAreas)){
+			return hit.position;
+		}
+
+		return playerTransform.position;
+	}
+	
+	private Vector3 GetFleePoint(){
+		Vector3 awayDir = (transform.position - playerTransform.position).normalized;
+		Vector3 candidate = transform.position + awayDir * fleeDistance;
+
+		if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, fleeDistance, NavMesh.AllAreas)){
+			return hit.position;
+		}
+
+		return transform.position;
 	}
 	
 	private void PlaySeeSound(){

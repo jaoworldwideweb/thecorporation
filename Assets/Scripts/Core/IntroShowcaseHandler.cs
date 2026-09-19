@@ -18,7 +18,9 @@ public class Logo{
 
 public class IntroShowcaseHandler : MonoBehaviour{
 #region Program
+#pragma warning disable CS0414
 	[SerializeField] private bool doEasterEgg = false;
+#pragma warning restore CS0414
 	[SerializeField] private SoundHandler soundHandler;
 	
 	[Header("Image")]
@@ -41,7 +43,7 @@ public class IntroShowcaseHandler : MonoBehaviour{
 		
 		General.LockCursor();
 		
-		#if UNITY_EDITOR
+		#if !UNITY_STANDALONE && UNITY_EDITOR
 			StartCoroutine(doEasterEgg ? DoEasterEgg() : DoLogoShowcase());
 			return;
 		#endif

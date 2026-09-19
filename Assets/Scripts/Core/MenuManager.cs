@@ -11,26 +11,37 @@ using GameLibrary;
 
 public class MenuManager : MonoBehaviour{
 #region Inspector
+	[Header("User Interface")]
 	[SerializeField] private GameObject forgroundObject;
 	[SerializeField] private Image foregroundImage;
-	[SerializeField] private Slider staminaSlider;
-	[SerializeField] private TMP_Text[] employeeDescriptionOutput = new TMP_Text[2];
-	[SerializeField] private Image idPhoto;
+	[SerializeField] private CharacterOutput mainCharacterCard;
+	[SerializeField] private CharacterOutput characterDescription;
 	
-	[Header("Sound Handler")]
+	[Header("Interactable User Interface")]
+	[SerializeField] private Slider staminaSlider;
+	
+	[Header("Sound")]
 	[SerializeField] private SoundHandler soundHandler;
 	[SerializeField] private AudioClip music;
+	[SerializeField] private AudioClip selectionSound;
 	
-	[Header("Charcter")]
-	[SerializeField] private EmployeeData currentEmployee;
+	[Header("Characters")]
+	[SerializeField] private CharacterData[] characters;
+	private CharacterData mainCharacter;
 	[SerializeField] private Date currentDate;
 	
+	private int currentCharacter = 0;
 	private Queue<MenuTransition> transitionQueue = new Queue<MenuTransition>();
 	private bool isProcessingQueue = false;
 	private bool isChangingMenu = false;
 #endregion
 
 #region MainFunctions
+	private void Awake(){
+		mainCharacter = characters[0];
+		SetDescriptionCharacter(mainCharacter);
+	}
+	
 	private void Start(){
 		if(!PlayerPrefs.HasKey("OptionsSet")){
 			staminaSlider.value = PlayerPrefs.GetFloat("MouseSensitivity");
@@ -46,15 +57,48 @@ public class MenuManager : MonoBehaviour{
 		staminaSlider.onValueChanged.AddListener(SetMouseSensitivity);
 	}
 	
-	private void Update(){
-		// nullpointer
+	private void Update(){}
+#endregion
+
+#region CharacterDescription
+	public void IncreaseCharacterSelection(){
+		ChangeCurrentCharacter(1);
+		soundHandler.PlaySound(selectionSound, SoundOutput.PlayerSounds);
+	}
+	
+	public void DecreaseCharacterSelection(){
+		ChangeCurrentCharacter(-1);
+		soundHandler.PlaySound(selectionSound, SoundOutput.PlayerSounds);
+	}
+	
+	private void ChangeCurrentCharacter(int amount){
+		currentCharacter += amount;
+
+		if (currentCharacter >= characters.Length){
+			currentCharacter = 0;			
+		}
+		else if (currentCharacter < 0){
+			currentCharacter = characters.Length - 1;			
+		}
+		
+		SetDescriptionCharacter(characters[currentCharacter]);
+	}
+	
+	private void SetDescriptionCharacter(CharacterData character){
+		characterDescription.image.sprite = character.GetPhoto();
+		characterDescription.name.text = character.GetBasicFormatted(currentDate);
+		characterDescription.description.text = character.GetDescription();
 	}
 #endregion
 
 #region MenuCalls
 	private void SetMouseSensitivity(float value){
 		PlayerPrefs.SetFloat("MouseSensitivity", value);
-	}	
+	}
+	
+	private void SetLowQualitySettings(bool value){
+		GeneralLibrary.SaveData.SetBool("IS_LOW", value);
+	}
 	
 	private IEnumerator StartFadeIn(){
 		forgroundObject.SetActive(true);
@@ -82,11 +126,10 @@ public class MenuManager : MonoBehaviour{
 		SceneManager.LoadScene(sceneName);
 	}
 	
-	public void SetEmployeeDescription(){
-		idPhoto.sprite = currentEmployee.photo;
-		
-		employeeDescriptionOutput[0].text = currentEmployee.name;
-		employeeDescriptionOutput[1].text = currentEmployee.GetFormatted();
+	public void SetMainCharacterCard(){
+		mainCharacterCard.image.sprite = mainCharacter.GetPhoto();
+		mainCharacterCard.name.text = mainCharacter.GetName();
+		mainCharacterCard.description.text = mainCharacter.GetFullFormatted();
 	}
 	
 	public void ExitGame(){
