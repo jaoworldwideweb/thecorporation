@@ -44,7 +44,6 @@ namespace MathLibrary{
 			return inv ? b / a : a / b;
 		}
 		
-		// operations
 		public void Store(float push) => memory = push;
 		
 		public void Push(char variable = 'a'){

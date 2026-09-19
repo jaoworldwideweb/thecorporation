@@ -22,7 +22,6 @@ public class PlayerScript : MonoBehaviour{
 	[SerializeField] private CharacterFaceManager faceManager;
 	
 	[Header("Footsteps")]
-	[SerializeField] private FootstepType currentFloorType = FootstepType.Concrete;
 	[SerializeField] private FootstepSound[] footstepSounds;
 	[SerializeField] private float footstepDelay;
 	private float footstepTimer;
@@ -41,7 +40,7 @@ public class PlayerScript : MonoBehaviour{
 	private const float GRAVITY = -9;
 	
 	[Header("Viewmodel")]
-	public FullObject boxViewmodel; // { get; private set; }
+	public FullObject boxViewmodel;
 
 	[Header("Stamina")]
 	public float stamina;
@@ -98,45 +97,41 @@ public class PlayerScript : MonoBehaviour{
 
 #region FootstepFunctions
 	private void HandleFootsteps(){
-		if (isMoving && !gameController.isGamePaused){
+		if(isMoving && !gameController.isGamePaused){
 			footstepTimer -= Time.deltaTime;
-			if (footstepTimer <= 0f){
-				UpdateFloorType();
+						
+			if(footstepTimer <= 0f){
 				PlayFootstep();
 				footstepTimer = isRunning ? footstepDelay / 1.5f : footstepDelay;
 			}
+			
+			return;
 		}
-		else{
-			footstepTimer = 0f;
-		}
+		
+		footstepTimer = 0f;
 	}
-
+	
 	private void PlayFootstep(){
-		FootstepSound footstepSound = GetFootstepSound(currentFloorType);
+		PhysicMaterial material = GetFloorMaterial();
+		FootstepSound footstepSound = GetFootstepSound(material);
+		
 		soundHandler.PlaySound(footstepSound.sounds[UnityEngine.Random.Range(0, footstepSound.sounds.Length)]);
 	}
-	
-	private void UpdateFloorType(){
+
+	private PhysicMaterial GetFloorMaterial() {
 		Ray ray = new Ray(transform.position + Vector3.up * 0.1f, Vector3.down);
-
-		if (Physics.Raycast(ray, out RaycastHit hit, 2f)){
-			PhysicMaterial material = hit.collider.sharedMaterial;
-
-			foreach (FootstepSound footstepSound in footstepSounds){
-				if (footstepSound.material == material){
-					currentFloorType = footstepSound.type;
-					return;
-				}
-			}
+		
+		if(Physics.Raycast(ray, out RaycastHit hit, 2f)){
+			return hit.collider.sharedMaterial;			
 		}
-
-		currentFloorType = FootstepType.Concrete;
+		
+		return null;
 	}
 	
-	private FootstepSound GetFootstepSound(FootstepType type){
-		foreach (FootstepSound footstepSound in footstepSounds){
-			if (footstepSound.type == type){
-				return footstepSound;
+	private FootstepSound GetFootstepSound(PhysicMaterial material) {
+		foreach(FootstepSound footstepSound in footstepSounds) {
+			if(footstepSound.material == material){
+				return footstepSound;				
 			}
 		}
 		

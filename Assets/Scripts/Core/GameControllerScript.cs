@@ -48,7 +48,7 @@ public class GameControllerScript : MonoBehaviour{
 	public UserInterfaceTextObject roomInformation;
 	public int maxBoxes { get; private set; }
 	[HideInInspector] public int collectedBoxes { get; private set; }
-	[HideInInspector] public Box currentBoxData;
+	[HideInInspector] public Box currentBox;
 	[HideInInspector] public BoxColor roomColor = BoxColor.Red;
 	[HideInInspector] public bool isHoldingBox = false;	
 	
@@ -79,12 +79,12 @@ public class GameControllerScript : MonoBehaviour{
 	#endif
 		
 		LockMouse();
-		currentBoxData.Clear();
+		currentBox.Clear();
 		boxCounter.text = UpdateBoxCount();
 		
 		playerScript.boxViewmodel.SetCachedPosition();
-		boxInformation.Start();
-		textOutput.Start();
+		boxInformation.Initiate();
+		textOutput.Initiate();
 		
 		soundHandler.PlayMusicFromList(musicTracks);
 	}
@@ -115,7 +115,7 @@ public class GameControllerScript : MonoBehaviour{
 		General.DoActionFromInput(itemHandler.SetItemSelection, InputAction.Slot1, 1);
 		General.DoActionFromInput(itemHandler.UseItem, InputAction.UseItem);
 		
-		PanelToggle(() => boxInformation.tmpText.text = currentBoxData.GetFormatted(), isHoldingBox, boxInformation, InputAction.Tab);
+		PanelToggle(() => boxInformation.tmpText.text = currentBox.GetFormatted(), isHoldingBox, boxInformation, InputAction.Tab);
 		PanelToggle(() => roomInformation.tmpText.text = GetFormattedRoomName(), isInsideRoomTrigger, roomInformation, InputAction.Q);
 		
 		// raycast
@@ -307,7 +307,7 @@ public class GameControllerScript : MonoBehaviour{
 		collectedBoxes++;
 		boxCounter.text = UpdateBoxCount();
 		isHoldingBox = false;
-		currentBoxData.Clear();
+		currentBox.Clear();
 		
 		if(playerScript.stamina < playerScript.maxStamina){
 			playerScript.stamina = playerScript.maxStamina / UnityEngine.Random.Range(0, 4); // i love rng
@@ -316,7 +316,7 @@ public class GameControllerScript : MonoBehaviour{
 		if(boxInformation.state == ObjectState.Showing){
 			StartCoroutine(
 				IMovePanel(
-					() => boxInformation.tmpText.text = currentBoxData.GetFormatted(),
+					() => boxInformation.tmpText.text = currentBox.GetFormatted(),
 					isHoldingBox,
 					Direction.Down,
 					boxInformation

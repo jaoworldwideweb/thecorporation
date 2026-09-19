@@ -43,7 +43,7 @@ public class ColorRoomTrigger : MonoBehaviour{
 			ResetProgress();
 			return;
 		}
-
+		
 		float distance = Vector3.Distance(gameController.playerTransform.position, transform.position);
 		float closeness = Mathf.Clamp01(1f - distance / triggerRadius);
 		float speed = Mathf.Lerp(1f, maxSpeedMultiplier, closeness);
@@ -59,13 +59,7 @@ public class ColorRoomTrigger : MonoBehaviour{
 		}
 	}
 	
-	private bool isBoxValid(){
-		if(gameController.currentBoxData.color == roomColor){
-			return true;
-		}
-		
-		return false;
-	}
+	private bool isBoxValid() => gameController.currentBox.GetColor() == roomColor;
 	
 	private void ResetProgress(){
 		holdProgress = 0f;
@@ -88,12 +82,12 @@ public class ColorRoomTrigger : MonoBehaviour{
 		}
 		
 		isInsideRoomTrigger = false;
+		
 		progressSliderObject.SetActive(false);
 		ResetProgress();
 		
 		gameController.isInsideRoomTrigger = false;
 		
-		// this shit looks ugly as FUCK!!!!!!!!
 		StartCoroutine(
 			gameController.IMovePanel(
 				() => gameController.roomInformation.tmpText.text = gameController.GetFormattedRoomName(),
@@ -102,8 +96,6 @@ public class ColorRoomTrigger : MonoBehaviour{
 				gameController.roomInformation
 			)
 		);
-													 
-		
 	}
 #endregion
 }

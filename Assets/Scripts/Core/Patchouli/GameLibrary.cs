@@ -38,16 +38,6 @@ namespace GameLibrary{
 		Bleeding
 	}
 	
-	public enum FootstepType{
-		Wood,
-		Vent,		
-		Metal,
-		MetalGrate,
-		Tile,
-		Concrete,
-		Water
-	}
-	
 	public enum SoundOutput{
 		PlayerSounds,
 		GameSounds
@@ -88,7 +78,7 @@ namespace GameLibrary{
 		public ObjectState state;
 		public bool isMoving = false;
 		
-		public void Start(){
+		public void Initiate(){
 			SetCachedPosition();
 			SetRectTransform();
 		}
@@ -261,36 +251,34 @@ namespace GameLibrary{
 	}
 	
 	[System.Serializable]
-	public struct Box{
-		public BoxColor color;
-		public int id;
+	public class Box{
+		private const BoxColor COLOR = BoxColor.Red;
+		private const string ID = "0000";
 		
-		public Box(BoxColor color, int id){
-			this.color = color;
-			this.id = id;
-		}
+		[SerializeField] private BoxColor color = COLOR;
+		[SerializeField] private string id = ID;
+		
+		public BoxColor GetColor() => color;
+		public string GetFormatted() => $"{General.GetFormattedColor(color).ToUpper()}\n{id}";
+		public string GetID() => string.IsNullOrEmpty(id) ? ID : id;
+		
+		public void SetID(string newID){
+			id = newID;
+		}		
 		
 		public void Clear(){
-			color = BoxColor.Red;
-			id = 0;
+			color = COLOR;
+			id = ID;
 		}
 		
 		public void Transfer(Box box){
-			Clear();
 			color = box.color;
 			id = box.id;
-		}
-		
-		public string GetFormatted(){
-			return 
-				$"{General.GetFormattedColor(color).ToUpper()}\n" +
-				$"{id}";
-		}
+		}	
 	}
 	
 	[System.Serializable]
 	public class FootstepSound{
-		public FootstepType type;
 		public PhysicMaterial material;
 		public AudioClip[] sounds;
 	}
@@ -347,9 +335,11 @@ namespace GameLibrary{
 		public string GetName() => string.IsNullOrEmpty(name) ? NAME : name;
 		public string GetGender() => string.IsNullOrEmpty(gender) ? GENDER : gender;
 		public string GetDescription() => string.IsNullOrEmpty(description) ? DESCRIPTION : description;
+		
 		public Date GetBirthday() => birthday.isNull() ? BIRTHDAY : birthday;
-		public int GetAge(Date currentDate) => currentDate.year - birthday.year;
 		public string GetFormattedBirthday() => GetBirthday().GetFormatted();
+		public int GetAge(Date currentDate) => currentDate.year - birthday.year;
+		
 		public Sprite GetPhoto() => photo;
 		
 		public string GetBasicFormatted(Date currentDate){
