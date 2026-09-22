@@ -70,10 +70,8 @@ public class GameControllerScript : MonoBehaviour{
 #region MainFunctions
 	private void Start(){
 	#if UNITY_STANDALONE && !UNITY_EDITOR
-		bool isLow = SaveData.GetBool("IS_LOW")
-		
-		int monitorWidth = isLow ? Screen.currentResolution.width / 2 : Screen.currentResolution.width;
-		int monitorHeight = isLow ? Screen.currentResolution.height / 2 : Screen.currentResolution.height;
+		int monitorWidth = Screen.currentResolution.width;
+		int monitorHeight = Screen.currentResolution.height;
 		
 		UserInterface.ResizeRenderTexture(new dint(monitorWidth, monitorHeight), cameraOutput, playerCamera);
 	#endif
@@ -96,15 +94,7 @@ public class GameControllerScript : MonoBehaviour{
 			soundHandler.PlayMusicFromList(musicTracks);
 		}
 		
-		// some bs
-		if (!isGamePaused & Time.timeScale != 1f){
-			Time.timeScale = 1f;
-		}
-		else{
-			if (Time.timeScale != 0f){
-				Time.timeScale = 0f;
-			}
-		}
+		Time.timeScale = isGamePaused ? 0f : 1f;
 		
 		if(isGamePaused || isGameOver){
 			return;

@@ -1,9 +1,10 @@
 using UnityEngine;
 using System;
 using System.Runtime.CompilerServices;
+using GameLibrary;
 
 namespace MathLibrary{
-#region Structs
+#region DataTypes
 	[System.Serializable]
 	public struct dfloat{
 		public float a;
@@ -141,13 +142,166 @@ namespace MathLibrary{
 	}
 	
 	[System.Serializable]
+	public struct dVector2{
+		public Vector2 a;
+		public Vector2 b;
+		public Vector2 memory;
+		
+		public dVector2(Vector2 a, Vector2 b){
+			this.a = a;
+			this.b = b;
+			this.memory = Vector2.zero;
+		}
+		
+		public bool isClear(bool full = false){
+			if(!full){
+				return a == Vector2.zero && b == Vector2.zero;
+			}
+			
+			return a == Vector2.zero && b == Vector2.zero && memory == Vector2.zero;
+		}
+		
+		public bool isEqual(bool full = false){
+			if(!full){
+				return a.Equals(b);
+			}
+			
+			return a.Equals(b) && b.Equals(memory);
+		}
+		
+		public void Store(Vector2 value) => memory = value;
+		
+		public void Push(char variable = 'a'){
+			char lowVariable = char.ToLowerInvariant(variable);
+			
+			switch(lowVariable){
+				case 'a':
+					a = memory;
+					break;
+				
+				case 'b':
+					b = memory;
+					break;
+			}
+		}
+		
+		public void Clear(bool full = false){
+			if(!full){
+				a = Vector2.zero;
+				b = Vector2.zero;
+				
+				return;
+			}
+			
+			memory = Vector2.zero;
+		}
+	}
+	
+	[System.Serializable]
 	public struct dVector3{
 		public Vector3 a;
 		public Vector3 b;
+		public Vector3 memory;
 		
 		public dVector3(Vector3 a, Vector3 b){
 			this.a = a;
 			this.b = b;
+			this.memory = Vector2.zero;
+		}
+		
+		public bool isClear(bool full = false){
+			if(!full){
+				return a == Vector3.zero && b == Vector3.zero;
+			}
+			
+			return a == Vector3.zero && b == Vector3.zero && memory == Vector3.zero;
+		}
+		
+		public bool isEqual(bool full = false){
+			if(!full){
+				return a.Equals(b);
+			}
+			
+			return a.Equals(b) && b.Equals(memory);
+		}
+		
+		public void Store(Vector3 value) => memory = value;
+		
+		public void Push(char variable = 'a'){
+			char lowVariable = char.ToLowerInvariant(variable);
+			
+			switch(lowVariable){
+				case 'a':
+					a = memory;
+					break;
+				
+				case 'b':
+					b = memory;
+					break;
+			}
+		}
+		
+		public void Clear(bool full = false){
+			if(!full){
+				a = Vector3.zero;
+				b = Vector3.zero;
+				
+				return;
+			}
+			
+			memory = Vector3.zero;
+		}
+	}
+	
+	[System.Serializable]
+	public struct Direction2{
+		public Vector2 up;
+		public Vector2 down;
+		public Vector2 left;
+		public Vector2 right;
+		
+		public Direction2(Vector2 up, Vector2 down, Vector2 left, Vector2 right){
+			this.up = up;
+			this.down = down;
+			this.left = left;
+			this.right = right;
+		}
+		
+		public Vector2 GetDirection(Direction direction){
+			switch(direction){
+				case Direction.Up: return up;
+				case Direction.Down: return down;
+				case Direction.Left: return left;
+				case Direction.Right: return right; 
+			}
+			
+			return Vector2.zero;
+		}
+	}
+	
+	[System.Serializable]
+	public struct Direction3{
+		public Vector3 up;
+		public Vector3 down;
+		public Vector3 left;
+		public Vector3 right;
+		
+		public Direction3(Vector3 up, Vector3 down, Vector3 left, Vector3 right){
+			this.up = up;
+			this.down = down;
+			this.left = left;
+			this.right = right;
+		}
+		
+		public Vector3 GetDirection(Direction direction){
+			switch(direction){
+				case Direction.Up: return up;
+				case Direction.Down: return down;
+				case Direction.Left: return left;
+				case Direction.Right: return right; 
+			}
+			
+			return Vector3.zero;
 		}
 	}
 #endregion

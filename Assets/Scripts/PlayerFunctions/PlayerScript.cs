@@ -65,6 +65,7 @@ public class PlayerScript : MonoBehaviour{
 		
 		boxViewmodel.obj.SetActive(false);
 		boxViewmodel.SetCachedPosition();
+		// i love hardcoding sometimes <3
 		StartCoroutine(BobBoxViewmodel(boxViewmodel, new Vector3(0f, 0.25f, 0f), 2f, 2f, HighMath.PI));
 	}
 	

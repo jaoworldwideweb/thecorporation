@@ -72,11 +72,12 @@ namespace GameLibrary{
 	[System.Serializable]
 	public class UserInterfaceObject{
 		[HideInInspector] public RectTransform rectTransform;
+		[HideInInspector] public Vector2 cachedPosition = new Vector3(0f, 0f, 0f);
+		[HideInInspector] public ObjectState state;
+		[HideInInspector] public bool isMoving = false;
+		
 		public GameObject obj;
-		public Vector2 cachedPosition = new Vector3(0f, 0f, 0f);
-		public DirectionVector2 directions;
-		public ObjectState state;
-		public bool isMoving = false;
+		public Direction2 directions;
 		
 		public void Initiate(){
 			SetCachedPosition();
@@ -111,13 +112,12 @@ namespace GameLibrary{
 
 	[System.Serializable]
 	public class FullObject{
-		public GameObject obj;
-		public Vector3 cachedPosition = new Vector3(0f, 0f, 0f);
-		public DirectionVector3 directions;
-		public ObjectState state;
-		public bool isMoving = false;
+		[HideInInspector] public Vector3 cachedPosition = new Vector3(0f, 0f, 0f);
+		[HideInInspector] public ObjectState state;
+		[HideInInspector] public bool isMoving = false;
 		
-		private Coroutine currentAction = null;
+		public GameObject obj;
+		public Direction3 directions;
 		
 		public void SetCachedPosition(){
 			cachedPosition = obj.transform.localPosition;
@@ -133,8 +133,6 @@ namespace GameLibrary{
 			isMoving = true;
 			yield return UserInterface.Move3DObject(obj.transform, targetPosition, easing, time);
 			isMoving = false;
-			
-			currentAction = null;
 		}
 	}
 	
@@ -146,59 +144,6 @@ namespace GameLibrary{
 		public MenuTransition(GameObject currentMenu, GameObject nextMenu){
 			this.currentMenu = currentMenu;
 			this.nextMenu = nextMenu;
-		}
-	}
-	
-	// this is so bad.
-	[System.Serializable]
-	public struct DirectionVector2{
-		public Vector2 up;
-		public Vector2 down;
-		public Vector2 left;
-		public Vector2 right;
-		
-		public DirectionVector2(Vector2 up, Vector2 down, Vector2 left, Vector2 right){
-			this.up = up;
-			this.down = down;
-			this.left = left;
-			this.right = right;
-		}
-		
-		public Vector2 GetDirection(Direction direction){
-			switch(direction){
-				case Direction.Up: return up;
-				case Direction.Down: return down;
-				case Direction.Left: return left;
-				case Direction.Right: return right; 
-			}
-			
-			return Vector2.zero;
-		}
-	}
-	
-	[System.Serializable]
-	public struct DirectionVector3{
-		public Vector3 up;
-		public Vector3 down;
-		public Vector3 left;
-		public Vector3 right;
-		
-		public DirectionVector3(Vector3 up, Vector3 down, Vector3 left, Vector3 right){
-			this.up = up;
-			this.down = down;
-			this.left = left;
-			this.right = right;
-		}
-		
-		public Vector3 GetDirection(Direction direction){
-			switch(direction){
-				case Direction.Up: return up;
-				case Direction.Down: return down;
-				case Direction.Left: return left;
-				case Direction.Right: return right; 
-			}
-			
-			return Vector3.zero;
 		}
 	}
 #endregion
@@ -240,6 +185,7 @@ namespace GameLibrary{
 		}
 	}
 	
+	[System.Serializable]
 	public struct ItemDefinition{
 		public ItemType type;
 		public Func<bool> function;
@@ -259,7 +205,7 @@ namespace GameLibrary{
 		[SerializeField] private string id = ID;
 		
 		public BoxColor GetColor() => color;
-		public string GetFormatted() => $"{General.GetFormattedColor(color).ToUpper()}\n{id}";
+		public string GetFormatted() => $"{General.GetFormattedColor(color).ToUpper()}\n{GetID()}";
 		public string GetID() => string.IsNullOrEmpty(id) ? ID : id;
 		
 		public void SetID(string newID){
@@ -342,12 +288,8 @@ namespace GameLibrary{
 		
 		public Sprite GetPhoto() => photo;
 		
-		public string GetBasicFormatted(Date currentDate){
-			return
-				$"Name: {GetName()}\tAge: ≈{GetAge(currentDate)}\n" +
-				$"Gender: {GetGender()}";
-		}
-
+		public string GetBasicFormatted(Date currentDate) => $"Name: {GetName()}\tAge: ≈{GetAge(currentDate)}\nGender: {GetGender()}";
+		
 		public string GetFullFormatted(){
 			return
 				$"Gender: {GetGender()}\n" +
